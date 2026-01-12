@@ -1,0 +1,435 @@
+{
+  "_comment": "QuickFieldToggle ROBUST Sample - Demonstrates ALL available features",
+  "_version": "1.0.0",
+
+  "groups": [
+    {
+      "_comment": "=== BASIC GROUP: Simple toggles with checkmarks ===",
+      "groupName": "Quick Tags",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "Simple toggle - shows ✓ when enabled, removes when toggled off. No icon needed - inherits from group!",
+          "fieldName": "Favorite Tag",
+          "menuLabel": "Favorite",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "_comment": "Toggle with custom 'enabled' label instead of checkmark prefix",
+          "fieldName": "Completed",
+          "menuLabel": "Mark Complete",
+          "toggledMenuLabel": "✓ Completed!",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        }
+      ]
+    },
+
+    {
+      "_comment": "=== ACTION GROUP: One-way actions that always set values ===",
+      "groupName": "Play Queue",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "operationType 'set' = always sets value, never removes (one-way action)",
+          "fieldName": "Now Playing",
+          "menuLabel": "Move to Now Playing",
+          "toggledMenuLabel": "✓ Now Playing",
+          "enableValue": "true",
+          "operationType": "set",
+          "enabled": true,
+          "additionalActions": [
+            { "field": "Backlog", "action": "remove" },
+            { "field": "On Deck", "action": "remove" },
+            { "field": "Completed", "action": "remove" }
+          ]
+        },
+        {
+          "fieldName": "Backlog",
+          "menuLabel": "Move to Backlog",
+          "toggledMenuLabel": "✓ On Backlog",
+          "enableValue": "true",
+          "operationType": "set",
+          "enabled": true,
+          "additionalActions": [
+            { "field": "Now Playing", "action": "remove" },
+            { "field": "On Deck", "action": "remove" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "_comment": "=== MULTI-VALUE GROUP: Pick from semicolon-separated values ===",
+      "groupName": "Manage Tags",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "valueSource 'field' = reads existing values from the field itself",
+          "fieldName": "Tags",
+          "menuLabel": "Edit Tags",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true
+        },
+        {
+          "_comment": "valueSource 'config' = uses predefined values from 'values' array",
+          "fieldName": "Priority",
+          "menuLabel": "Set Priority",
+          "mode": "multiValue",
+          "valueSource": "config",
+          "values": ["High", "Medium", "Low", "None"],
+          "enabled": true
+        },
+        {
+          "_comment": "Multi-value with additionalActions - fires when ANY value is added",
+          "fieldName": "Awards",
+          "menuLabel": "Set Awards",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true,
+          "additionalActions": [
+            { "field": "Has Awards", "action": "set", "value": "true" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "_comment": "=== CONDITIONAL GROUP: Only shows for specific platforms ===",
+      "_comment2": "Uses platform icon - will show Nintendo Switch logo",
+      "groupName": "Nintendo Tools",
+      "icon": "media:Nintendo Switch",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "conditions": [
+        {
+          "_comment": "logic 'or' = ANY rule can match. Use 'and' to require ALL rules",
+          "logic": "or",
+          "rules": [
+            { "field": "Platform", "operator": "contains", "value": "Nintendo" },
+            { "field": "Platform", "operator": "equals", "value": "Super Nintendo Entertainment System" }
+          ]
+        }
+      ],
+      "items": [
+        {
+          "fieldName": "First Party",
+          "menuLabel": "First Party Title",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "_comment": "No icon specified - inherits Nintendo Switch icon from group!",
+          "fieldName": "NSO Available",
+          "menuLabel": "Available on NSO",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        }
+      ]
+    },
+
+    {
+      "_comment": "=== ADVANCED CONDITIONS: Multiple condition groups (AND between groups) ===",
+      "groupName": "Retro RPG Tools",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "conditions": [
+        {
+          "_comment": "First group: Must be an RPG",
+          "logic": "or",
+          "rules": [
+            { "field": "GenresString", "operator": "contains", "value": "RPG" },
+            { "field": "GenresString", "operator": "contains", "value": "Role-Playing" }
+          ]
+        },
+        {
+          "_comment": "Second group: Must be retro platform (AND with first group)",
+          "logic": "or",
+          "rules": [
+            { "field": "Platform", "operator": "contains", "value": "Nintendo Entertainment System" },
+            { "field": "Platform", "operator": "contains", "value": "Super Nintendo" },
+            { "field": "Platform", "operator": "contains", "value": "Sega Genesis" },
+            { "field": "Platform", "operator": "contains", "value": "PlayStation" }
+          ]
+        }
+      ],
+      "items": [
+        {
+          "fieldName": "Classic RPG",
+          "menuLabel": "Classic RPG",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        }
+      ]
+    },
+
+    {
+      "_comment": "=== CONDITIONAL ITEMS: Individual items with their own conditions ===",
+      "groupName": "Platform Specific",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "This item only shows for PlayStation games",
+          "fieldName": "PSN Classic",
+          "menuLabel": "PSN Classic",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                { "field": "Platform", "operator": "contains", "value": "PlayStation" },
+                { "field": "Platform", "operator": "contains", "value": "Sony" }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "This item only shows for Xbox games",
+          "fieldName": "Xbox Backward Compatible",
+          "menuLabel": "Xbox BC",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                { "field": "Platform", "operator": "contains", "value": "Xbox" },
+                { "field": "Platform", "operator": "contains", "value": "Microsoft" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "_comment": "=== ICON EXAMPLES: Different icon sources ===",
+      "groupName": "Icon Showcase",
+      "icon": "default",
+      "iconCascade": "none",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "icon: path: - Custom icon file (RECOMMENDED for custom icons)",
+          "fieldName": "Custom Icon Demo",
+          "menuLabel": "Custom Path Icon",
+          "icon": "path:icons/custom.png",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "_comment": "icon: playlist: - Uses a LaunchBox playlist's icon",
+          "fieldName": "Playlist Icon Demo",
+          "menuLabel": "Playlist Icon",
+          "icon": "playlist:Favorites",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "_comment": "icon: media: with subdirectory icon (e.g., savvy.png in Playlists folder)",
+          "fieldName": "Media Subdir Demo",
+          "menuLabel": "Media Pack Subfolder",
+          "icon": "media:savvy",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        }
+      ]
+    },
+
+    {
+      "_comment": "=== OPERATOR EXAMPLES: All condition operators ===",
+      "groupName": "Operator Showcase",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "operationType: remove - Always removes the field (cleanup action)",
+          "fieldName": "Temporary Tag",
+          "menuLabel": "Clear Temporary Tag",
+          "operationType": "remove",
+          "enabled": true
+        },
+        {
+          "_comment": "exists operator - Shows only if field has any value",
+          "fieldName": "Has Notes",
+          "menuLabel": "Has Notes Indicator",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "rules": [
+                { "field": "Notes", "operator": "exists" }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notExists operator - Shows only if field is empty",
+          "fieldName": "Needs Review",
+          "menuLabel": "Needs Review",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "rules": [
+                { "field": "Developer", "operator": "notExists" }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "in operator - Value must be in comma-separated list",
+          "fieldName": "Retro Platform",
+          "menuLabel": "Retro Platform Tag",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "rules": [
+                { "field": "Platform", "operator": "in", "value": "Nintendo Entertainment System,Super Nintendo Entertainment System,Sega Genesis,Sega Master System" }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notIn operator - Value must NOT be in list",
+          "fieldName": "Not Retro",
+          "menuLabel": "Modern Platform Tag",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "rules": [
+                { "field": "Platform", "operator": "notIn", "value": "Nintendo Entertainment System,Super Nintendo Entertainment System,Sega Genesis" }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notEquals operator - Shows when platform is NOT Windows",
+          "fieldName": "Console Game",
+          "menuLabel": "Console Game Tag",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "rules": [
+                { "field": "Platform", "operator": "notEquals", "value": "Windows" }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notContains operator - Shows when genre does NOT contain Action",
+          "fieldName": "Non-Action Game",
+          "menuLabel": "Non-Action Tag",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "rules": [
+                { "field": "GenresString", "operator": "notContains", "value": "Action" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "_comment_ungrouped": "Items here appear directly in context menu without a submenu",
+  "ungroupedItems": [
+    {
+      "_comment": "Quick access toggle without navigating submenus",
+      "fieldName": "Hidden",
+      "menuLabel": "Hide Game",
+      "toggledMenuLabel": "✓ Hidden",
+      "icon": "default",
+      "enableValue": "true",
+      "operationType": "toggle",
+      "enabled": true
+    }
+  ],
+
+  "_documentation": {
+    "operationType": {
+      "toggle": "Default. If all selected have value, remove. Otherwise, set.",
+      "set": "Always set the value (one-way action, never removes)",
+      "remove": "Always remove the field"
+    },
+    "mode": {
+      "simple": "Default. Single value toggle (true/false style)",
+      "multiValue": "Shows submenu with checkable values from semicolon-separated list"
+    },
+    "valueSource": {
+      "config": "Use values from the 'values' array in this config",
+      "field": "Read existing values from the field across selected games"
+    },
+    "conditionOperators": {
+      "equals": "Exact match (case-insensitive)",
+      "notEquals": "Not an exact match",
+      "contains": "Value contains the string",
+      "notContains": "Value does not contain the string",
+      "exists": "Field has any value (non-empty)",
+      "notExists": "Field is empty or missing",
+      "in": "Value is in comma-separated list (e.g., 'A,B,C')",
+      "notIn": "Value is not in comma-separated list"
+    },
+    "conditionFields": {
+      "_note": "Any IGame property works via reflection. Common ones:",
+      "examples": ["Platform", "Title", "GenresString", "Developer", "Publisher", "Series", "Region", "ReleaseYear", "Favorite", "StarRating"],
+      "customFields": "Any field name not matching an IGame property falls back to custom field lookup"
+    },
+    "additionalActions": {
+      "_note": "Execute additional field changes when primary action fires",
+      "set": "Set field to specified value",
+      "remove": "Remove the field entirely"
+    },
+    "icon": {
+      "_note": "Optional icon for groups and items. Formats:",
+      "default": "Built-in QFT logo (16x16)",
+      "media:Name": "Platform icon from your installed icon packs (e.g., 'media:Nintendo Switch')",
+      "platform:Name": "Alias for media:",
+      "playlist:Name": "Playlist's icon from LaunchBox data",
+      "path:filename": "RECOMMENDED for custom icons - relative to Plugins folder (e.g., 'path:icons/star.png')",
+      "customIconTip": "Use path: for custom icons so they don't get overwritten when media packs update!",
+      "searchOrder": "media: checks 1) Your active Platform Icon pack, 2) Other installed packs, 3) Subdirectories",
+      "specs": "16x16 PNG with transparency recommended (larger images auto-resized)"
+    },
+    "iconCascade": {
+      "_note": "Group-level setting for icon inheritance",
+      "inherit": "Items without icons inherit the group's icon",
+      "none": "Items without icons have no icon (default)"
+    }
+  }
+}
+

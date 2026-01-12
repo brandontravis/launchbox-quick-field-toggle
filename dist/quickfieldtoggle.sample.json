@@ -1,0 +1,61 @@
+{
+  "_comment": "QuickFieldToggle - Simple Drop-in Sample",
+  "_comment2": "This sample creates two custom fields: 'On Deck' and 'Backlog'",
+  "_comment3": "Rename this file to 'quickfieldtoggle.json' to use it",
+
+  "groups": [
+    {
+      "groupName": "Play Queue",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "items": [
+        {
+          "fieldName": "On Deck",
+          "menuLabel": "Move to On Deck",
+          "toggledMenuLabel": "✓ On Deck",
+          "enableValue": "true",
+          "operationType": "set",
+          "enabled": true,
+          "additionalActions": [
+            { "field": "Backlog", "action": "remove" }
+          ]
+        },
+        {
+          "fieldName": "Backlog",
+          "menuLabel": "Move to Backlog",
+          "toggledMenuLabel": "✓ On Backlog",
+          "enableValue": "true",
+          "operationType": "set",
+          "enabled": true,
+          "additionalActions": [
+            { "field": "On Deck", "action": "remove" }
+          ]
+        }
+      ]
+    },
+    {
+      "groupName": "Quick Tags",
+      "icon": "default",
+      "iconCascade": "inherit",
+      "enabled": true,
+      "items": [
+        {
+          "fieldName": "On Deck",
+          "menuLabel": "On Deck",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "fieldName": "Backlog",
+          "menuLabel": "Backlog",
+          "enableValue": "true",
+          "operationType": "toggle",
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "ungroupedItems": []
+}

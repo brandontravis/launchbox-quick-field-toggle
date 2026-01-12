@@ -1,0 +1,29 @@
+# Build outputs
+src/bin/
+src/obj/
+*.pdb
+
+# NuGet
+*.nupkg
+packages/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+
+# Rider / JetBrains
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# User's personal config (use .sample.json as template)
+src/quickfieldtoggle.json
+src/quickfieldtoggle.custom.json
+
+# LaunchBox reference DLL (users must provide their own)
+src/*.LaunchBox*.dll
+src/Unbroken.*.dll
