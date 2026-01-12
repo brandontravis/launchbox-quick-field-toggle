@@ -78,11 +78,13 @@ Select 50 games, right-click, toggle a field. All 50 updated instantly.
 ## 📦 Installation
 
 1. Download the [latest release](https://github.com/brandontravis/launchbox-quick-field-toggle/releases/latest)
-2. Extract to `LaunchBox\Plugins\`:
+2. Extract the `QuickFieldToggle` folder to `LaunchBox\Plugins\`:
    ```
    Plugins\
-   ├── QuickFieldToggle.dll
-   └── quickfieldtoggle.json  (rename from .sample.json)
+   └── QuickFieldToggle\
+       ├── QuickFieldToggle.dll
+       ├── quickfieldtoggle.json  (rename from .sample.json)
+       └── README.md
    ```
 3. Restart LaunchBox
 4. Right-click any game → See your new menu options!
@@ -168,12 +170,11 @@ QuickFieldToggle/
 ├── docs/                        ← Documentation
 │   └── CONFIGURATION.md         ← Complete config guide
 ├── dist/                        ← Release packages
-│   └── QuickFieldToggle_v1.0.0.zip
+│   ├── QuickFieldToggle/        ← Folder to extract to Plugins
+│   └── QuickFieldToggle.zip     ← Download this
 └── src/                         ← Source code
     ├── QuickFieldToggle.csproj
-    ├── QuickFieldTogglePlugin.cs
-    ├── quickfieldtoggle.sample.json
-    └── quickfieldtoggle.sample.robust.json
+    └── QuickFieldTogglePlugin.cs
 ```
 
 ## 🤝 Contributing
