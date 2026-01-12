@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![LaunchBox](https://img.shields.io/badge/LaunchBox-Plugin-orange.svg)](https://www.launchbox-app.com/)
-[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/YOUR_USERNAME/QuickFieldToggle/releases)
+[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/brandontravis/launchbox-quick-field-toggle/releases)
 
 A powerful LaunchBox plugin for rapidly managing custom fields via the right-click context menu.
 
@@ -21,7 +21,7 @@ A powerful LaunchBox plugin for rapidly managing custom fields via the right-cli
 
 ## 📦 Quick Install
 
-1. Download the [latest release](https://github.com/YOUR_USERNAME/QuickFieldToggle/releases/latest)
+1. Download the [latest release](https://github.com/brandontravis/launchbox-quick-field-toggle/releases/latest)
 2. Extract to `LaunchBox\Plugins\`:
    ```
    Plugins\
@@ -117,4 +117,4 @@ Developed for the LaunchBox community.
 
 ---
 
-**[⬇️ Download Latest Release](https://github.com/YOUR_USERNAME/QuickFieldToggle/releases/latest)**
+**[⬇️ Download Latest Release](https://github.com/brandontravis/launchbox-quick-field-toggle/releases/latest)**
