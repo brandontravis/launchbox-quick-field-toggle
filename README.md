@@ -39,14 +39,18 @@ Rename `quickfieldtoggle.sample.json` to `quickfieldtoggle.json` for a working d
 
 ## 📖 Documentation
 
-Full configuration documentation is in the [dist/README.md](dist/README.md) included with the download.
+| Guide | Description |
+|-------|-------------|
+| [**About**](docs/ABOUT.md) | Why this plugin exists and what problems it solves |
+| [**Configuration Guide**](docs/CONFIGURATION.md) | Complete setup guide with examples |
+| [**Quick Reference**](dist/README.md) | Condensed reference (included in download) |
 
-**Quick links:**
-- [Configuration Structure](dist/README.md#configuration-structure)
-- [Operation Types](dist/README.md#operation-types)
-- [Multi-Field Actions](dist/README.md#multi-field-actions)
-- [Conditional Display](dist/README.md#conditional-display)
-- [Icons](dist/README.md#icons)
+**Jump to:**
+- [Simple Toggles](docs/CONFIGURATION.md#simple-toggles)
+- [Action Menus](docs/CONFIGURATION.md#action-menus-move-to-backlog)
+- [Multi-Value Picker](docs/CONFIGURATION.md#multi-value-picker)
+- [Conditional Display](docs/CONFIGURATION.md#conditional-display)
+- [Icons](docs/CONFIGURATION.md#icons)
 
 ## 💡 Example Configuration
 
@@ -90,11 +94,14 @@ QuickFieldToggle/
 ├── README.md              ← You are here
 ├── assets/                ← Screenshots
 │   └── screenshot.png
+├── docs/                  ← Documentation
+│   ├── ABOUT.md           ← Background & philosophy
+│   └── CONFIGURATION.md   ← Complete config guide
 ├── dist/                  ← Release files (download these)
 │   ├── QuickFieldToggle.dll
 │   ├── quickfieldtoggle.sample.json
 │   ├── quickfieldtoggle.sample.robust.json
-│   └── README.md          ← Full documentation
+│   └── README.md          ← Quick reference
 └── src/                   ← Source code
     ├── QuickFieldToggle.csproj
     └── QuickFieldTogglePlugin.cs
