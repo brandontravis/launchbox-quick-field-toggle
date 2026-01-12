@@ -157,16 +157,6 @@ But you can override any behavior when needed.
 
 ---
 
-## 🛠️ Building from Source
-
-```bash
-# Requires Visual Studio 2022+ with .NET Framework 4.8
-cd src
-dotnet build -c Release
-```
-
-You'll need `Unbroken.LaunchBox.Plugins.dll` from your LaunchBox installation.
-
 ## 📁 Repository Structure
 
 ```
