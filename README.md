@@ -3,8 +3,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![LaunchBox](https://img.shields.io/badge/LaunchBox-Plugin-orange.svg)](https://www.launchbox-app.com/)
 [![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/brandontravis/launchbox-quick-field-toggle/releases)
+[![Tested On](https://img.shields.io/badge/Tested%20On-LaunchBox%2013.24-blue.svg)](https://www.launchbox-app.com/)
 
 A powerful LaunchBox plugin for rapidly managing custom fields via the right-click context menu.
+
+> **Compatibility:** Tested on LaunchBox 13.24 (Windows). Other versions may work but are untested.
 
 ![QuickFieldToggle Demo](assets/screenshot.png)
 
@@ -120,10 +123,7 @@ Rename `quickfieldtoggle.sample.json` to `quickfieldtoggle.json` for a working d
 
 ## 📖 Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [**Configuration Guide**](docs/CONFIGURATION.md) | Complete setup guide with examples |
-| [**Quick Reference**](dist/README.md) | Condensed reference (included in download) |
+See the [**Configuration Guide**](docs/CONFIGURATION.md) for complete setup instructions with examples.
 
 **Jump to:**
 - [Simple Toggles](docs/CONFIGURATION.md#simple-toggles)
@@ -172,19 +172,18 @@ You'll need `Unbroken.LaunchBox.Plugins.dll` from your LaunchBox installation.
 ```
 QuickFieldToggle/
 ├── LICENSE
-├── README.md              ← You are here
-├── assets/                ← Screenshots
+├── README.md                    ← You are here
+├── assets/                      ← Screenshots
 │   └── screenshot.png
-├── docs/                  ← Documentation
-│   └── CONFIGURATION.md   ← Complete config guide
-├── dist/                  ← Release files (download these)
-│   ├── QuickFieldToggle.dll
-│   ├── quickfieldtoggle.sample.json
-│   ├── quickfieldtoggle.sample.robust.json
-│   └── README.md          ← Quick reference
-└── src/                   ← Source code
+├── docs/                        ← Documentation
+│   └── CONFIGURATION.md         ← Complete config guide
+├── dist/                        ← Release packages
+│   └── QuickFieldToggle_v1.0.0.zip
+└── src/                         ← Source code
     ├── QuickFieldToggle.csproj
-    └── QuickFieldTogglePlugin.cs
+    ├── QuickFieldTogglePlugin.cs
+    ├── quickfieldtoggle.sample.json
+    └── quickfieldtoggle.sample.robust.json
 ```
 
 ## 🤝 Contributing
