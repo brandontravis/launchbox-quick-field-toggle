@@ -38,7 +38,11 @@ mkdir -p "$OUTPUT_DIR/QuickFieldToggle/icons"
 echo "Packaging files..."
 cp "$DLL_PATH" "$OUTPUT_DIR/QuickFieldToggle/"
 cp "$SCRIPT_DIR/release/README.md" "$OUTPUT_DIR/QuickFieldToggle/"
-cp "$SCRIPT_DIR/release/quickfieldtoggle.sample.json" "$OUTPUT_DIR/QuickFieldToggle/"
+cp "$SCRIPT_DIR/release/quickfieldtoggle.sample-simple.json" "$OUTPUT_DIR/QuickFieldToggle/"
+cp "$SCRIPT_DIR/release/quickfieldtoggle.sample-complex.json" "$OUTPUT_DIR/QuickFieldToggle/"
+
+# Copy icons (excluding .gitkeep)
+find "$SCRIPT_DIR/release/icons" -type f ! -name ".gitkeep" -exec cp {} "$OUTPUT_DIR/QuickFieldToggle/icons/" \;
 
 # Create zip
 echo "Creating zip..."
@@ -55,8 +59,9 @@ echo "Contents:"
 echo "  QuickFieldToggle/"
 echo "  ├── QuickFieldToggle.dll"
 echo "  ├── README.md"
-echo "  ├── quickfieldtoggle.sample.json"
+echo "  ├── quickfieldtoggle.sample-simple.json"
+echo "  ├── quickfieldtoggle.sample-complex.json"
 echo "  └── icons/"
+ls "$OUTPUT_DIR/QuickFieldToggle/icons/" 2>/dev/null | sed 's/^/      └── /' || echo "      (empty)"
 echo ""
 echo "Upload this zip to GitHub Releases!"
-

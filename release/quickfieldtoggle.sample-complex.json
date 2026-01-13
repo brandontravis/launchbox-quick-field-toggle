@@ -1,0 +1,772 @@
+{
+  "_comment": "QuickFieldToggle - COMPLEX Sample Configuration",
+  "_comment2": "This is a REAL configuration showing actual usage patterns",
+  "_comment3": "Rename this file to 'quickfieldtoggle.json' to use it",
+  "_comment4": "Full documentation: https://github.com/brandontravis/launchbox-quick-field-toggle",
+  "defaultIcon": "default",
+  "defaultIconCascade": "inherit",
+  "groups": [
+    {
+      "_comment": "=== PLAY QUEUE: Manage game backlog with mutually exclusive states ===",
+      "groupName": "Play Queue",
+      "enabled": true,
+      "items": [
+        {
+          "fieldName": "Now Playing",
+          "menuLabel": "Move to Now Playing",
+          "toggledMenuLabel": "✓ Now Playing",
+          "operationType": "set",
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "Backlog",
+              "action": "remove"
+            },
+            {
+              "field": "On Deck",
+              "action": "remove"
+            }
+          ]
+        },
+        {
+          "fieldName": "On Deck",
+          "menuLabel": "Move to On Deck",
+          "toggledMenuLabel": "✓ On Deck",
+          "operationType": "set",
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "Now Playing",
+              "action": "remove"
+            },
+            {
+              "field": "Backlog",
+              "action": "remove"
+            }
+          ]
+        },
+        {
+          "fieldName": "Backlog",
+          "menuLabel": "Move to Backlog",
+          "toggledMenuLabel": "✓ In Backlog",
+          "operationType": "set",
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "Now Playing",
+              "action": "remove"
+            },
+            {
+              "field": "On Deck",
+              "action": "remove"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_comment": "=== SET AWARDS: Multi-value selection with automatic flag setting ===",
+      "groupName": "Set Awards",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "valueSource: field - pulls values from existing field data across all games",
+          "fieldName": "Awards Won",
+          "menuLabel": "Set Awards Won",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "Any Award Won",
+              "action": "set",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "fieldName": "Award Nominations",
+          "menuLabel": "Set Award Nominations",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "Any Award Nomination",
+              "action": "set",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "_comment": "valueSource: config - uses predefined values list, with custom icon",
+          "fieldName": "Awards Won",
+          "menuLabel": "Set GOTY Awards",
+          "mode": "multiValue",
+          "valueSource": "config",
+          "icon": "path:icons/GOTY Winners.png",
+          "values": [
+            "Game of the Year (D.I.C.E.)",
+            "Game of the Year (GDC)",
+            "Game of the Year (Golden Joystick)",
+            "Game of the Year (TGA)",
+            "Best Game (BAFTA)"
+          ],
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "Any Award Won",
+              "action": "set",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_comment": "=== EXPLORATION: Simple toggles and multi-value pickers ===",
+      "groupName": "Exploration",
+      "enabled": true,
+      "items": [
+        {
+          "fieldName": "Discovery Bin",
+          "menuLabel": "Discovery Bin",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "fieldName": "The Best",
+          "menuLabel": "The Best",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "fieldName": "Mini Console Name",
+          "menuLabel": "Add Mini Console",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "Mini Console Release",
+              "action": "set",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "fieldName": "VC Platforms",
+          "menuLabel": "Add Virtual Console Release",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true,
+          "additionalActions": [
+            {
+              "field": "VC Release",
+              "action": "set",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_comment": "=== NINTENDO TOOLS: Conditional group - only shows for Nintendo platforms ===",
+      "groupName": "Nintendo Tools",
+      "icon": "media:Nintendo Switch",
+      "enabled": true,
+      "conditions": [
+        {
+          "logic": "or",
+          "rules": [
+            {
+              "field": "Platform",
+              "operator": "equals",
+              "value": "Nintendo Wii"
+            },
+            {
+              "field": "Platform",
+              "operator": "equals",
+              "value": "Nintendo Wii U"
+            },
+            {
+              "field": "Platform",
+              "operator": "equals",
+              "value": "Nintendo 3DS"
+            },
+            {
+              "field": "Platform",
+              "operator": "equals",
+              "value": "Nintendo Switch"
+            }
+          ]
+        }
+      ],
+      "items": [
+        {
+          "fieldName": "First Party",
+          "menuLabel": "First Party",
+          "icon": "media:Nintendo Switch",
+          "operationType": "toggle",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "_comment": "=== MANAGE ERAS: Generation and platform era tracking ===",
+      "groupName": "Manage Eras",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "valueSource: config with explicit values list",
+          "fieldName": "Generation",
+          "menuLabel": "Set Generation",
+          "mode": "multiValue",
+          "valueSource": "config",
+          "values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+          ],
+          "enabled": true
+        },
+        {
+          "fieldName": "Platform Era",
+          "menuLabel": "Set Platform Era",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true
+        },
+        {
+          "fieldName": "Platform Era Lifecycle",
+          "menuLabel": "Set Era Lifecycle",
+          "mode": "multiValue",
+          "valueSource": "field",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "_comment": "=== SAMPLES: Demonstrating various operators and conditions ===",
+      "groupName": "Samples",
+      "iconCascade": "none",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "operationType: remove - always removes the field",
+          "fieldName": "Temporary Tag",
+          "menuLabel": "1. operationType: remove",
+          "operationType": "remove",
+          "enabled": true
+        },
+        {
+          "_comment": "icon: path: - uses a custom icon file",
+          "fieldName": "My Favorites",
+          "menuLabel": "2. icon: path:custom.png",
+          "icon": "path:icons/custom.png",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "_comment": "Item-level condition with 'contains' operator",
+          "fieldName": "PSN Classic",
+          "menuLabel": "3. PlayStation Only (contains)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "PlayStation"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "exists operator - shows only if Developer field has a value",
+          "fieldName": "Has Developer",
+          "menuLabel": "4. Developer exists",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "in operator - matches any value in comma-separated list",
+          "fieldName": "Current Gen",
+          "menuLabel": "5. Platform in (PS5, XSX, Switch)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "in",
+                  "value": "PlayStation 5, Xbox Series X, Nintendo Switch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "OR logic - multiple rules, any can pass",
+          "fieldName": "Console Game",
+          "menuLabel": "6. Nintendo OR PlayStation (OR)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Nintendo"
+                },
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "PlayStation"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "AND between groups - both conditions must pass",
+          "fieldName": "Complete Metadata",
+          "menuLabel": "7. Developer AND Publisher (AND)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                }
+              ]
+            },
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Publisher",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "Complex: (Nintendo OR PlayStation) AND (has Developer)",
+          "fieldName": "Quality Title",
+          "menuLabel": "8. Console + Developer (Complex)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Nintendo"
+                },
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "PlayStation"
+                }
+              ]
+            },
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_comment": "=== SIMPLE OPERATOR TESTS: One example of each operator ===",
+      "groupName": "Simple Operator Tests",
+      "iconCascade": "none",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "No conditions - always visible on all platforms",
+          "fieldName": "Always Visible",
+          "menuLabel": "T0. NO CONDITIONS (always visible)",
+          "operationType": "toggle",
+          "enabled": true
+        },
+        {
+          "_comment": "equals - exact platform match",
+          "fieldName": "Test Equals",
+          "menuLabel": "T1. equals (Switch only)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "equals",
+                  "value": "Nintendo Switch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notEquals - not exact match",
+          "fieldName": "Test NotEquals",
+          "menuLabel": "T2. notEquals (NOT Switch)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "notEquals",
+                  "value": "Nintendo Switch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "contains - substring match",
+          "fieldName": "Test Contains",
+          "menuLabel": "T3. contains Nintendo",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Nintendo"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notContains - no substring match",
+          "fieldName": "Test NotContains",
+          "menuLabel": "T4. notContains Nintendo",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "notContains",
+                  "value": "Nintendo"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "exists - field has a value",
+          "fieldName": "Test Exists",
+          "menuLabel": "T5. Developer exists",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notExists - field is empty",
+          "fieldName": "Test NotExists",
+          "menuLabel": "T6. Developer notExists",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "notExists"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "in - matches any value in list",
+          "fieldName": "Test In",
+          "menuLabel": "T7. in (Switch, PS5)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "in",
+                  "value": "Nintendo Switch, Sony Playstation 5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "notIn - matches none of the values",
+          "fieldName": "Test NotIn",
+          "menuLabel": "T8. notIn (Switch, PS5)",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "notIn",
+                  "value": "Nintendo Switch, Sony Playstation 5"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_comment": "=== MULTI CONDITION TESTS: Combining multiple rules ===",
+      "groupName": "Multi Condition Tests",
+      "iconCascade": "none",
+      "enabled": true,
+      "items": [
+        {
+          "_comment": "OR logic within a condition group",
+          "fieldName": "Test OR Logic",
+          "menuLabel": "M1. Nintendo OR PlayStation",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Nintendo"
+                },
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "PlayStation"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "AND logic within a condition group",
+          "fieldName": "Test AND Logic",
+          "menuLabel": "M2. Has Developer AND Publisher",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "and",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                },
+                {
+                  "field": "Publisher",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "Multiple condition groups (AND between groups)",
+          "fieldName": "Test Multi Group AND",
+          "menuLabel": "M3. Nintendo + Has Developer",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Nintendo"
+                }
+              ]
+            },
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "Complex: (Nintendo OR PlayStation) AND (has Developer)",
+          "fieldName": "Test Complex",
+          "menuLabel": "M4. (Nin OR PS) AND Developer",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Nintendo"
+                },
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "PlayStation"
+                }
+              ]
+            },
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "Triple OR - three platforms",
+          "fieldName": "Test Triple OR",
+          "menuLabel": "M5. Nintendo OR PS OR Sega",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Nintendo"
+                },
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "PlayStation"
+                },
+                {
+                  "field": "Platform",
+                  "operator": "contains",
+                  "value": "Sega"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_comment": "NOT operator combined with other conditions",
+          "fieldName": "Test NOT Combined",
+          "menuLabel": "M6. NOT Nintendo + Developer",
+          "operationType": "toggle",
+          "enabled": true,
+          "conditions": [
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Platform",
+                  "operator": "notContains",
+                  "value": "Nintendo"
+                }
+              ]
+            },
+            {
+              "logic": "or",
+              "rules": [
+                {
+                  "field": "Developer",
+                  "operator": "exists"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "ungroupedItems": [
+    {
+      "_comment": "Ungrouped items appear directly in the context menu (no submenu)",
+      "fieldName": "New Custom Field",
+      "menuLabel": "Quick: New Custom Field",
+      "operationType": "toggle",
+      "enabled": true
+    },
+    {
+      "_comment": "You can have multiple ungrouped items",
+      "fieldName": "Sample Field",
+      "menuLabel": "Quick: Toggle Sample Field",
+      "operationType": "toggle",
+      "enabled": true
+    }
+  ]
+}

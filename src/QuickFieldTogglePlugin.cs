@@ -60,7 +60,8 @@ namespace QuickFieldToggle
         public List<string> Values { get; set; } = new List<string>();  // Predefined values for multiValue mode
         public string ValueSource { get; set; }  // "config" or "field" - where to get the values list
         
-        // Icon: "default", "platform:Name", "playlist:Name", "path:filename.png", or null
+        // Icon: "default", "media:Name", "path:filename.png", or null
+        // Note: "playlist:Name" is deprecated and will be removed in a future release
         public string Icon { get; set; }
     }
 
@@ -71,7 +72,8 @@ namespace QuickFieldToggle
         public List<ToggleConfig> Items { get; set; } = new List<ToggleConfig>();
         public List<ConditionGroup> Conditions { get; set; } = new List<ConditionGroup>();  // Conditions for entire group
         
-        // Icon: "default", "media:Name", "platform:Name", "playlist:Name", "path:filename.png", or null
+        // Icon: "default", "media:Name", "path:filename.png", or null
+        // Note: "playlist:Name" is deprecated and will be removed in a future release
         public string Icon { get; set; }
         
         // IconCascade: "inherit" = items without icons inherit group's icon, "none" = no inheritance (default)
@@ -82,6 +84,10 @@ namespace QuickFieldToggle
     {
         public List<GroupConfig> Groups { get; set; } = new List<GroupConfig>();
         public List<ToggleConfig> UngroupedItems { get; set; } = new List<ToggleConfig>();
+        
+        // Root-level defaults (users can override per-group/item)
+        public string DefaultIcon { get; set; } = "default";
+        public string DefaultIconCascade { get; set; } = "none";
 
         private static PluginConfiguration _instance;
         private static readonly object _lock = new object();
@@ -138,6 +144,10 @@ namespace QuickFieldToggle
         {
             var config = new PluginConfiguration();
 
+            // Parse root-level defaults
+            config.DefaultIcon = ExtractStringValue(json, "defaultIcon") ?? "default";
+            config.DefaultIconCascade = ExtractStringValue(json, "defaultIconCascade") ?? "none";
+
             // Parse groups
             int groupsStart = json.IndexOf("\"groups\"");
             if (groupsStart != -1)
@@ -156,8 +166,8 @@ namespace QuickFieldToggle
                         group.GroupName = ExtractStringValue(groupObj, "groupName");
                         group.Enabled = ExtractBoolValue(groupObj, "enabled");
                         group.Conditions = ParseConditions(groupObj);
-                        group.Icon = ExtractStringValue(groupObj, "icon");
-                        group.IconCascade = ExtractStringValue(groupObj, "iconCascade") ?? "none";
+                        group.Icon = ExtractStringValue(groupObj, "icon") ?? config.DefaultIcon;
+                        group.IconCascade = ExtractStringValue(groupObj, "iconCascade") ?? config.DefaultIconCascade;
 
                         // Parse items within this group
                         int itemsStart = groupObj.IndexOf("\"items\"");
@@ -354,6 +364,15 @@ namespace QuickFieldToggle
 
             int conditionsStart = obj.IndexOf("\"conditions\"");
             if (conditionsStart == -1) return groups;
+
+            // IMPORTANT: Make sure we're not finding conditions inside nested "items"
+            // Only parse conditions that appear BEFORE the items array
+            int itemsStart = obj.IndexOf("\"items\"");
+            if (itemsStart != -1 && conditionsStart > itemsStart)
+            {
+                // The conditions we found are inside an item, not at the group level
+                return groups;
+            }
 
             int conditionsArrayStart = obj.IndexOf('[', conditionsStart);
             if (conditionsArrayStart == -1) return groups;
@@ -637,7 +656,8 @@ namespace QuickFieldToggle
 
     /// <summary>
     /// Helper class for loading and caching menu icons
-    /// Supports: "default", "media:Name", "platform:Name", "playlist:Name", "path:filename.png"
+    /// Supports: "default", "media:Name", "path:filename.png"
+    /// Note: "playlist:Name" is deprecated and will be removed in a future release
     /// Prioritizes the user's active Platform Icon pack from LaunchBox settings.
     /// </summary>
     public static class IconHelper
@@ -1081,13 +1101,27 @@ namespace QuickFieldToggle
         }
 
         /// <summary>
-        /// Resizes an image to the specified dimensions with high quality
+        /// Resizes an image to fit within the specified dimensions while preserving aspect ratio
         /// </summary>
-        private static Image ResizeImage(Image source, int width, int height)
+        private static Image ResizeImage(Image source, int maxWidth, int maxHeight)
         {
-            var destRect = new Rectangle(0, 0, width, height);
-            var destImage = new Bitmap(width, height);
+            // Calculate scale to fit within bounds while preserving aspect ratio
+            double scaleX = (double)maxWidth / source.Width;
+            double scaleY = (double)maxHeight / source.Height;
+            double scale = Math.Min(scaleX, scaleY);
 
+            // If image is already smaller than max, don't upscale
+            if (scale >= 1.0)
+                return new Bitmap(source);
+
+            int newWidth = (int)(source.Width * scale);
+            int newHeight = (int)(source.Height * scale);
+
+            // Ensure minimum size of 1 pixel
+            newWidth = Math.Max(1, newWidth);
+            newHeight = Math.Max(1, newHeight);
+
+            var destImage = new Bitmap(newWidth, newHeight);
             destImage.SetResolution(source.HorizontalResolution, source.VerticalResolution);
 
             using (var graphics = Graphics.FromImage(destImage))
@@ -1101,7 +1135,8 @@ namespace QuickFieldToggle
                 using (var wrapMode = new System.Drawing.Imaging.ImageAttributes())
                 {
                     wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(source, destRect, 0, 0, source.Width, source.Height, GraphicsUnit.Pixel, wrapMode);
+                    graphics.DrawImage(source, new Rectangle(0, 0, newWidth, newHeight), 
+                        0, 0, source.Width, source.Height, GraphicsUnit.Pixel, wrapMode);
                 }
             }
 
@@ -1367,7 +1402,20 @@ namespace QuickFieldToggle
         }
 
         // Use item's icon if set, otherwise use inherited icon from group
-        public Image Icon => IconHelper.GetIcon(_config.Icon ?? _inheritedIcon);
+        public Image Icon
+        {
+            get
+            {
+                try
+                {
+                    return IconHelper.GetIcon(_config.Icon ?? _inheritedIcon);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
 
         public bool Enabled => true;
 
@@ -1447,7 +1495,20 @@ namespace QuickFieldToggle
         public string Caption => _config.MenuLabel;
 
         // Use item's icon if set, otherwise use inherited icon from group
-        public Image Icon => IconHelper.GetIcon(_config.Icon ?? _inheritedIcon);
+        public Image Icon
+        {
+            get
+            {
+                try
+                {
+                    return IconHelper.GetIcon(_config.Icon ?? _inheritedIcon);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
 
         public bool Enabled => true;
 
@@ -1620,7 +1681,20 @@ namespace QuickFieldToggle
 
         public string Caption => _groupConfig.GroupName;
 
-        public Image Icon => IconHelper.GetIcon(_groupConfig.Icon);
+        public Image Icon
+        {
+            get
+            {
+                try
+                {
+                    return IconHelper.GetIcon(_groupConfig.Icon);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
 
         public bool Enabled => true;
 
@@ -1628,17 +1702,42 @@ namespace QuickFieldToggle
         {
             get
             {
-                // Determine inherited icon based on iconCascade setting
-                string inheritedIcon = null;
-                if (_groupConfig.IconCascade?.ToLower() == "inherit")
+                try
                 {
-                    inheritedIcon = _groupConfig.Icon;
-                }
+                    // Determine inherited icon based on iconCascade setting
+                    string inheritedIcon = null;
+                    if (_groupConfig.IconCascade?.ToLower() == "inherit")
+                    {
+                        inheritedIcon = _groupConfig.Icon;
+                    }
 
-                return _groupConfig.Items
-                    .Where(item => item.Enabled)
-                    .Where(item => ConditionEvaluator.ShouldShow(item.Conditions, _selectedGames))
-                    .Select(item => CreateMenuItem(item, inheritedIcon));
+                    var items = new List<IGameMenuItem>();
+                    
+                    foreach (var item in _groupConfig.Items)
+                    {
+                        try
+                        {
+                            if (!item.Enabled)
+                                continue;
+                                
+                            if (!ConditionEvaluator.ShouldShow(item.Conditions, _selectedGames))
+                                continue;
+                                
+                            items.Add(CreateMenuItem(item, inheritedIcon));
+                        }
+                        catch
+                        {
+                            // Skip this item silently
+                        }
+                    }
+                    
+                    return items;
+                }
+                catch
+                {
+                    // Return empty list if anything fails
+                    return new List<IGameMenuItem>();
+                }
             }
         }
 
@@ -1721,17 +1820,30 @@ namespace QuickFieldToggle
 
         public void OnSelected()
         {
-            // Clear icon cache first (in case icons were changed)
-            IconHelper.ClearCache();
-            
-            // Reload configuration
-            PluginConfiguration.Reload();
-            
-            System.Windows.Forms.MessageBox.Show(
-                "Quick Field Toggle configuration reloaded successfully!", 
-                "Config Reloaded", 
-                System.Windows.Forms.MessageBoxButtons.OK, 
-                System.Windows.Forms.MessageBoxIcon.Information);
+            try
+            {
+                // Clear icon cache first (in case icons were changed)
+                IconHelper.ClearCache();
+                
+                // Reload configuration
+                PluginConfiguration.Reload();
+                var config = PluginConfiguration.Instance;
+                
+                System.Windows.Forms.MessageBox.Show(
+                    $"Configuration reloaded successfully!\n\n" +
+                    $"Loaded {config.Groups.Count} groups and {config.UngroupedItems.Count} ungrouped items.",
+                    "Quick Field Toggle",
+                    System.Windows.Forms.MessageBoxButtons.OK,
+                    System.Windows.Forms.MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(
+                    $"Error reloading configuration:\n\n{ex.Message}",
+                    "Quick Field Toggle - Error",
+                    System.Windows.Forms.MessageBoxButtons.OK,
+                    System.Windows.Forms.MessageBoxIcon.Error);
+            }
         }
     }
 

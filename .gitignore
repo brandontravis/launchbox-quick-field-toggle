@@ -24,7 +24,6 @@ Thumbs.db
 
 # User's personal config (use .sample.json as template)
 src/quickfieldtoggle.json
-src/quickfieldtoggle.custom.json
 
 # LaunchBox reference DLL (users must provide their own)
 Unbroken.*.dll

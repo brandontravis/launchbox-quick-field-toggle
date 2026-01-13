@@ -1,113 +1,43 @@
-# Configuration Guide
+# Configuration Reference
 
-This guide covers everything you need to know to configure QuickFieldToggle for your workflow.
-
-## Table of Contents
-
-- [Basic Setup](#basic-setup)
-- [Simple Toggles](#simple-toggles)
-- [Action Menus](#action-menus-move-to-backlog)
-- [Multi-Value Picker](#multi-value-picker)
-- [Conditional Display](#conditional-display)
-- [Icons](#icons)
-- [Hot Reload](#hot-reload)
-- [Multi-Select Behavior](#multi-select-behavior)
-- [Complete Reference](#complete-reference)
+This is the complete reference for `quickfieldtoggle.json`. For real-world examples and context, see [My Library Walkthrough](walkthrough.md).
 
 ---
 
-## Basic Setup
+## File Location
 
-The plugin uses a JSON configuration file (`quickfieldtoggle.json`) in your LaunchBox `Plugins` folder.
+Place your config file at:
+```
+LaunchBox\Plugins\QuickFieldToggle\quickfieldtoggle.json
+```
 
-### File Structure
+After making changes, reload via **Tools → Reload Quick Field Toggle Config** (no restart needed).
+
+---
+
+## Basic Structure
 
 ```json
 {
-  "groups": [
-    {
-      "groupName": "My Menu Group",
-      "icon": "default",
-      "iconCascade": "inherit",
-      "enabled": true,
-      "items": [...]
-    }
-  ],
+  "defaultIcon": "default",
+  "defaultIconCascade": "inherit",
+  "groups": [...],
   "ungroupedItems": [...]
 }
 ```
 
-| Section | Description |
-|---------|-------------|
-| `groups` | Creates submenus in the context menu |
-| `ungroupedItems` | Items that appear directly in the context menu (no submenu) |
-
-### Quick Start
-
-1. Copy `quickfieldtoggle.sample.json` to `quickfieldtoggle.json`
-2. Edit to match your custom fields
-3. Restart LaunchBox (or use Hot Reload)
+| Property | Description |
+|----------|-------------|
+| `defaultIcon` | Default icon for groups (see [Icons](#icons)) |
+| `defaultIconCascade` | Default cascade behavior: `"none"` or `"inherit"` |
+| `groups` | Array of menu groups (submenus) |
+| `ungroupedItems` | Array of items that appear directly in the context menu |
 
 ---
 
-## Simple Toggles
+## Groups
 
-The most basic use case—toggle a true/false custom field on and off.
-
-### Example
-
-```json
-{
-  "groups": [
-    {
-      "groupName": "Quick Tags",
-      "icon": "default",
-      "iconCascade": "inherit",
-      "enabled": true,
-      "items": [
-        {
-          "fieldName": "Discovery Bin",
-          "menuLabel": "Discovery Bin",
-          "enableValue": "true",
-          "operationType": "toggle",
-          "enabled": true
-        },
-        {
-          "fieldName": "The Best",
-          "menuLabel": "The Best",
-          "enableValue": "true",
-          "operationType": "toggle",
-          "enabled": true
-        }
-      ]
-    }
-  ]
-}
-```
-
-### How It Works
-
-- **First click** → Sets "Discovery Bin" custom field to "true"
-- **Second click** → Removes the field entirely
-- **Visual indicator** → A ✓ checkmark appears when the field is set
-
-### Properties
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `fieldName` | string | *required* | The custom field name in LaunchBox |
-| `menuLabel` | string | *required* | Text shown in the menu |
-| `enableValue` | string | `"true"` | Value to set when enabling |
-| `operationType` | string | `"toggle"` | See [Operation Types](#operation-types) |
-| `enabled` | boolean | `true` | Show/hide this item |
-
----
-
-## Action Menus (Move to Backlog)
-
-For mutually exclusive states like a play queue, use `operationType: "set"` with `additionalActions` to create one-click actions that modify multiple fields.
-
-### Example
+Groups create submenus in the context menu.
 
 ```json
 {
@@ -115,78 +45,85 @@ For mutually exclusive states like a play queue, use `operationType: "set"` with
   "icon": "default",
   "iconCascade": "inherit",
   "enabled": true,
-  "items": [
-    {
-      "fieldName": "Now Playing",
-      "menuLabel": "Move to Now Playing",
-      "toggledMenuLabel": "✓ Now Playing",
-      "enableValue": "true",
-      "operationType": "set",
-      "enabled": true,
-      "additionalActions": [
-        { "field": "Backlog", "action": "remove" },
-        { "field": "On Deck", "action": "remove" }
-      ]
-    },
-    {
-      "fieldName": "On Deck",
-      "menuLabel": "Move to On Deck",
-      "toggledMenuLabel": "✓ On Deck",
-      "enableValue": "true",
-      "operationType": "set",
-      "enabled": true,
-      "additionalActions": [
-        { "field": "Now Playing", "action": "remove" },
-        { "field": "Backlog", "action": "remove" }
-      ]
-    },
-    {
-      "fieldName": "Backlog",
-      "menuLabel": "Move to Backlog",
-      "toggledMenuLabel": "✓ On Backlog",
-      "enableValue": "true",
-      "operationType": "set",
-      "enabled": true,
-      "additionalActions": [
-        { "field": "Now Playing", "action": "remove" },
-        { "field": "On Deck", "action": "remove" }
-      ]
-    }
+  "conditions": [...],
+  "items": [...]
+}
+```
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `groupName` | Yes | Submenu label |
+| `enabled` | No | `true` (default) or `false` to disable |
+| `icon` | No | Icon for this group (inherits from `defaultIcon`) |
+| `iconCascade` | No | `"inherit"` (items get group icon) or `"none"` |
+| `conditions` | No | Show group only when conditions match (see [Conditions](#conditions)) |
+| `items` | Yes | Array of menu items |
+
+---
+
+## Items
+
+Items are the actual menu entries that do things.
+
+### Basic Toggle
+
+```json
+{
+  "fieldName": "Discovery Bin",
+  "menuLabel": "Discovery Bin",
+  "operationType": "toggle",
+  "enabled": true
+}
+```
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `fieldName` | Yes | Custom field name (created automatically if it doesn't exist) |
+| `menuLabel` | Yes | Text shown in the menu |
+| `operationType` | No | `"toggle"` (default), `"set"`, or `"remove"` |
+| `enabled` | No | `true` (default) or `false` |
+| `toggledMenuLabel` | No | Alternative label when field is active (e.g., `"✓ Now Playing"`) |
+| `icon` | No | Override icon for this item |
+| `conditions` | No | Show item only when conditions match |
+| `additionalActions` | No | Other fields to set/remove (see below) |
+
+### Operation Types
+
+| Type | Behavior |
+|------|----------|
+| `toggle` | Adds field if missing, removes if present |
+| `set` | Always sets the field (never removes) |
+| `remove` | Always removes the field |
+
+Use `set` for "Move to..." actions where you want the action to always apply, not toggle off.
+
+### Additional Actions
+
+Modify multiple fields with one click:
+
+```json
+{
+  "fieldName": "Now Playing",
+  "menuLabel": "Move to Now Playing",
+  "operationType": "set",
+  "additionalActions": [
+    { "field": "Backlog", "action": "remove" },
+    { "field": "On Deck", "action": "remove" }
   ]
 }
 ```
 
-### Key Concepts
-
-| Property | Purpose |
-|----------|---------|
-| `operationType: "set"` | Always sets the value (never toggles off) |
-| `additionalActions` | Removes other queue states automatically |
-| `toggledMenuLabel` | Shows "✓ On Backlog" instead of "✓ Move to Backlog" when active |
-
-### Additional Actions
-
-```json
-"additionalActions": [
-  { "field": "SomeField", "action": "remove" },
-  { "field": "AnotherField", "action": "set", "value": "Active" }
-]
-```
-
-| Action | Description |
-|--------|-------------|
-| `"remove"` | Removes the field entirely |
-| `"set"` | Sets the field to specified value (default: `"true"`) |
-
-> **Note:** Additional actions only fire when the primary field is being SET, not when it's being removed during a toggle operation.
+| Property | Description |
+|----------|-------------|
+| `field` | Field name to modify |
+| `action` | `"set"` or `"remove"` |
+| `value` | Value to set (default: `"true"`) |
 
 ---
 
-## Multi-Value Picker
+## Multi-Value Mode
 
-For fields containing semicolon-separated values (e.g., `"GOTY 2023; Best RPG; Critics Choice"`), use multi-value mode to show a submenu with checkable options.
-
-### Example: Read Values from Library
+For fields with semicolon-separated values (like `"GOTY; Best RPG; Critics Choice"`), use multi-value mode to get a checkable submenu.
 
 ```json
 {
@@ -194,251 +131,126 @@ For fields containing semicolon-separated values (e.g., `"GOTY 2023; Best RPG; C
   "menuLabel": "Set Awards Won",
   "mode": "multiValue",
   "valueSource": "field",
-  "enabled": true,
-  "additionalActions": [
-    { "field": "Any Award Won", "action": "set", "value": "true" }
-  ]
-}
-```
-
-**How it works:**
-1. Scans your **entire library** for existing values in "Awards Won"
-2. Shows a submenu with all unique values found
-3. Check/uncheck values to add/remove them from the current game
-4. `additionalActions` fires when any value is added
-
-### Example: Predefined Values
-
-```json
-{
-  "fieldName": "Priority",
-  "menuLabel": "Set Priority",
-  "mode": "multiValue",
-  "valueSource": "config",
-  "values": ["High", "Medium", "Low", "None"],
   "enabled": true
 }
 ```
 
-### Properties
+| Property | Description |
+|----------|-------------|
+| `mode` | Set to `"multiValue"` |
+| `valueSource` | `"field"` (scan library) or `"config"` (use `values` array) |
+| `values` | Array of values when using `valueSource: "config"` |
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `mode` | string | `"simple"` (default) or `"multiValue"` |
-| `valueSource` | string | `"field"` (scan library) or `"config"` (use values array) |
-| `values` | array | Predefined values when using `valueSource: "config"` |
+### Value Source: Field
 
----
+Scans your entire library for existing values in that field. The submenu shows all unique values found.
 
-## Conditional Display
+### Value Source: Config
 
-Show menu items only for specific platforms, genres, or any field value.
-
-### Basic Example
+Uses a predefined list:
 
 ```json
 {
-  "groupName": "Nintendo Tools",
-  "icon": "media:Nintendo Switch",
-  "iconCascade": "inherit",
-  "enabled": true,
+  "fieldName": "Generation",
+  "menuLabel": "Set Generation",
+  "mode": "multiValue",
+  "valueSource": "config",
+  "values": ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+}
+```
+
+---
+
+## Conditions
+
+Show groups or items only when certain conditions are met.
+
+```json
+{
   "conditions": [
     {
       "logic": "or",
       "rules": [
-        { "field": "Platform", "operator": "equals", "value": "Nintendo Wii" },
-        { "field": "Platform", "operator": "equals", "value": "Nintendo Wii U" },
-        { "field": "Platform", "operator": "equals", "value": "Nintendo 3DS" },
-        { "field": "Platform", "operator": "equals", "value": "Nintendo Switch" }
+        { "field": "Platform", "operator": "contains", "value": "Nintendo" }
       ]
-    }
-  ],
-  "items": [
-    {
-      "fieldName": "First Party",
-      "menuLabel": "First Party",
-      "enableValue": "true",
-      "operationType": "toggle",
-      "enabled": true
     }
   ]
 }
 ```
 
-**This entire menu group only appears when right-clicking Nintendo games!**
+### Operators
 
-### Condition Operators
+| Operator | Description |
+|----------|-------------|
+| `equals` | Exact match |
+| `notEquals` | Not exact match |
+| `contains` | Substring match |
+| `notContains` | No substring match |
+| `exists` | Field has any value |
+| `notExists` | Field is empty |
+| `in` | Value in comma-separated list |
+| `notIn` | Value not in list |
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `equals` | Exact match (case-insensitive) | `"value": "Nintendo Switch"` |
-| `notEquals` | Not equal to | `"value": "Windows"` |
-| `contains` | Contains text | `"value": "Nintendo"` |
-| `notContains` | Does not contain | `"value": "Action"` |
-| `exists` | Field has any value | (no value needed) |
-| `notExists` | Field is empty or missing | (no value needed) |
-| `in` | Value in comma-separated list | `"value": "Wii,Switch,3DS"` |
-| `notIn` | Value not in list | `"value": "Windows,MS-DOS"` |
+### Logic
 
-### Available Fields
+Within a condition group:
+- `"logic": "or"` — any rule can pass
+- `"logic": "and"` — all rules must pass
 
-Conditions can check any `IGame` property:
+Between condition groups: **AND** (all groups must pass)
 
-- `Platform`, `Title`, `Developer`, `Publisher`, `Series`, `Region`
-- `GenresString`, `PlayMode`, `ReleaseYear`
-- `Favorite`, `Hide`, `Installed`, `StarRating`, `PlayCount`
-- **Any custom field name** (automatically falls back to custom field lookup)
+### Complex Example
 
-### Complex Conditions
-
-**Multiple rules with OR logic** (any rule can match):
-
-```json
-"conditions": [
-  {
-    "logic": "or",
-    "rules": [
-      { "field": "Platform", "operator": "contains", "value": "Nintendo" },
-      { "field": "Platform", "operator": "contains", "value": "Sega" }
-    ]
-  }
-]
-```
-
-**Multiple condition groups with AND logic** (all groups must match):
-
-```json
-"conditions": [
-  {
-    "logic": "or",
-    "rules": [
-      { "field": "GenresString", "operator": "contains", "value": "RPG" }
-    ]
-  },
-  {
-    "logic": "or",
-    "rules": [
-      { "field": "Platform", "operator": "contains", "value": "Nintendo" }
-    ]
-  }
-]
-```
-
-This shows the menu only for **Nintendo RPGs** (must match BOTH groups).
-
-### Item-Level Conditions
-
-Individual items within a group can have their own conditions:
+Show only for (Nintendo OR PlayStation) AND (has a Developer):
 
 ```json
 {
-  "groupName": "Platform Tools",
-  "enabled": true,
-  "items": [
+  "conditions": [
     {
-      "fieldName": "PSN Classic",
-      "menuLabel": "PSN Classic",
-      "conditions": [
-        {
-          "rules": [
-            { "field": "Platform", "operator": "contains", "value": "PlayStation" }
-          ]
-        }
+      "logic": "or",
+      "rules": [
+        { "field": "Platform", "operator": "contains", "value": "Nintendo" },
+        { "field": "Platform", "operator": "contains", "value": "PlayStation" }
       ]
     },
     {
-      "fieldName": "Xbox BC",
-      "menuLabel": "Xbox Backward Compatible",
-      "conditions": [
-        {
-          "rules": [
-            { "field": "Platform", "operator": "contains", "value": "Xbox" }
-          ]
-        }
+      "logic": "or",
+      "rules": [
+        { "field": "Developer", "operator": "exists" }
       ]
     }
   ]
 }
 ```
+
+### Supported Fields
+
+Conditions work with:
+- **Built-in fields:** Platform, Developer, Publisher, Genre, Series, Region, Title
+- **Custom fields:** Any text-based custom field
+
+**Not supported:** Date comparisons, numeric comparisons, boolean fields (Favorite, Hidden).
 
 ---
 
 ## Icons
 
-Add visual polish with icons on groups and menu items.
-
-### Icon Formats
-
-| Format | Example | Description |
-|--------|---------|-------------|
-| `"default"` | `"icon": "default"` | Built-in QuickFieldToggle logo (16x16) |
-| `"media:Name"` | `"icon": "media:Nintendo Switch"` | Icon from your Platform Icons media pack |
-| `"platform:Name"` | `"icon": "platform:Nintendo Switch"` | Alias for `media:` |
-| `"playlist:Name"` | `"icon": "playlist:Favorites"` | Playlist's icon from LaunchBox |
-| `"path:file.png"` | `"icon": "path:icons/custom.png"` | Custom file relative to Plugins folder |
-
-### Icon Cascade (Inheritance)
-
-Set icons at the group level and have child items inherit:
-
 ```json
 {
-  "groupName": "Play Queue",
-  "icon": "default",
-  "iconCascade": "inherit",
-  "items": [
-    { "menuLabel": "Item 1" },
-    { "menuLabel": "Item 2" },
-    { "menuLabel": "Custom", "icon": "media:Star" }
-  ]
+  "icon": "default"
 }
 ```
 
-| Value | Behavior |
-|-------|----------|
-| `"inherit"` | Items without icons inherit the group's icon |
-| `"none"` | Items without icons have no icon (default) |
+| Format | Example | Description |
+|--------|---------|-------------|
+| `"default"` | — | Built-in QFT logo |
+| `"media:Name"` | `"media:Nintendo Switch"` | Platform icon from your icon pack |
+| `"path:file.png"` | `"path:icons/award.png"` | Custom file in plugin folder |
 
-Items can always override with their own `icon` property.
+### Icon Cascade
 
-### Platform Icon Search
-
-The plugin intelligently searches your Platform Icon packs:
-
-1. **Your active pack first** (from LaunchBox settings)
-2. **Subdirectories included** (e.g., `Playlists/`, `Categories/`)
-3. **Fallback to other packs** if not found
-
-Custom icons like `savvy.png` in your icon pack's `Playlists` folder can be referenced simply as `"media:savvy"`.
-
-### Custom Icons Best Practice
-
-For custom icons you create, use `path:` and store them in your Plugins folder:
-
-```
-Plugins/
-├── QuickFieldToggle.dll
-├── quickfieldtoggle.json
-└── icons/
-    ├── custom1.png
-    └── custom2.png
-```
-
-This keeps your icons safe from being overwritten when media packs are updated.
-
-**Specifications:**
-- **Size:** 16x16 pixels recommended (larger images are resized)
-- **Format:** PNG with transparency, ICO, or BMP
-
----
-
-## Hot Reload
-
-Update your configuration without restarting LaunchBox:
-
-**Tools → Reload Quick Field Toggle Config**
-
-This reloads `quickfieldtoggle.json` and clears the icon cache. Perfect for testing configuration changes.
+- `"iconCascade": "inherit"` — Child items inherit the group's icon
+- `"iconCascade": "none"` — Child items have no icon (unless explicitly set)
 
 ---
 
@@ -446,74 +258,45 @@ This reloads `quickfieldtoggle.json` and clears the icon cache. Perfect for test
 
 When multiple games are selected:
 
-| Operation | Behavior |
-|-----------|----------|
-| Toggle (all have field) | Remove from ALL |
-| Toggle (mixed or none have field) | Set on ALL |
-| Set | Set on ALL |
-| Remove | Remove from ALL |
-| Multi-value (all have value) | Remove value from ALL |
-| Multi-value (mixed or none) | Add value to ALL |
+| Scenario | Result |
+|----------|--------|
+| **Toggle, all have field** | Removes from ALL |
+| **Toggle, mixed or none** | Sets on ALL |
+| **Set** | Sets on ALL |
+| **Remove** | Removes from ALL |
 
-Visual indicators (checkmarks) show `✓` only when **ALL** selected games have the field/value.
+The ✓ checkmark only appears when ALL selected games have the value.
 
 ---
 
-## Complete Reference
+## Hot Reload
 
-### Operation Types
+After editing your config:
 
-| Type | Behavior | Use Case |
-|------|----------|----------|
-| `toggle` | If all selected have value, remove. Otherwise, set. | Standard on/off fields |
-| `set` | Always set the value (never removes) | Mutually exclusive states, actions |
-| `remove` | Always remove the field | Cleanup actions |
+**Tools → Reload Quick Field Toggle Config**
 
-### Group Properties
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `groupName` | string | *required* | Submenu label |
-| `enabled` | boolean | `true` | Show/hide entire group |
-| `icon` | string | null | Icon specification |
-| `iconCascade` | string | `"none"` | `"inherit"` or `"none"` |
-| `conditions` | array | `[]` | Conditional display rules |
-| `items` | array | *required* | Menu items in this group |
-
-### Item Properties
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `fieldName` | string | *required* | Custom field name |
-| `menuLabel` | string | *required* | Menu text |
-| `toggledMenuLabel` | string | null | Alternative label when enabled |
-| `enableValue` | string | `"true"` | Value to set |
-| `operationType` | string | `"toggle"` | `toggle`, `set`, or `remove` |
-| `mode` | string | `"simple"` | `simple` or `multiValue` |
-| `valueSource` | string | `"config"` | `config` or `field` |
-| `values` | array | `[]` | Values for multiValue mode |
-| `enabled` | boolean | `true` | Show/hide item |
-| `icon` | string | null | Icon specification |
-| `additionalActions` | array | `[]` | Additional field changes |
-| `conditions` | array | `[]` | Conditional display rules |
-
-### Sample Files
-
-The download includes two sample configurations:
-
-| File | Description |
-|------|-------------|
-| `quickfieldtoggle.sample.json` | Simple demo with On Deck / Backlog |
-| `quickfieldtoggle.sample.robust.json` | Every feature demonstrated with comments |
+No restart required. Changes take effect immediately.
 
 ---
 
-## Need Help?
+## Troubleshooting
 
-- **GitHub Issues:** [Report bugs or request features](https://github.com/brandontravis/launchbox-quick-field-toggle/issues)
-- **LaunchBox Forums:** Post in the plugin thread
+**Plugin doesn't load:**
+- Right-click `QuickFieldToggle.dll` → Properties → Unblock
+- Ensure .NET Framework 4.8 is installed
+
+**Menu doesn't appear:**
+- Check that `enabled: true` on your groups and items
+- Verify JSON syntax (use a JSON validator)
+- Check conditions aren't filtering out the menu
+
+**Conditions not working:**
+- Conditions are case-insensitive for text matching
+- Use exact field names (check spelling)
+- Date/numeric comparisons are not supported
 
 ---
 
-[← Back to README](../README.md) | [About QuickFieldToggle](ABOUT.md)
+## Full Example
 
+See `quickfieldtoggle.sample-complex.json` for a complete working configuration.

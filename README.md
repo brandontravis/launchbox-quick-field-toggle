@@ -1,201 +1,124 @@
 # QuickFieldToggle
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![LaunchBox](https://img.shields.io/badge/LaunchBox-Plugin-orange.svg)](https://www.launchbox-app.com/)
-[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/brandontravis/launchbox-quick-field-toggle/releases)
-[![Tested On](https://img.shields.io/badge/Tested%20On-LaunchBox%2013.24-blue.svg)](https://www.launchbox-app.com/)
-
-A powerful LaunchBox plugin for rapidly managing custom fields via the right-click context menu.
-
-> **Compatibility:** Tested on LaunchBox 13.24 (Windows). Other versions may work but are untested.
-
-![QuickFieldToggle Demo](assets/screenshot.png)
+A LaunchBox plugin for managing custom fields without the friction.
 
 ---
 
-## The Problem
+## Why This Exists
 
-If you use custom fields to organize your LaunchBox library—tracking backlogs, tagging award winners, marking "now playing" games—you know the pain:
+I have 31,000 games across 70+ platforms in LaunchBox. I use custom fields extensively—play queues, award tracking, era classifications, platform-specific tags. It's a system that works well, except for one thing:
 
-**Right-click → Edit → Custom Fields tab → scroll → find field → change value → OK → repeat for next game...**
+**Actually maintaining it is miserable.**
 
-It's tedious. Especially when you're going through your library tagging games or managing a play queue. What should be a one-click action becomes a multi-step ordeal.
+LaunchBox's built-in UI for custom fields requires drilling into each game's edit screen, navigating to the Custom Fields tab, scrolling to find the right field, making the change, and saving. That's 6+ clicks per field, per game. At scale, the friction becomes unbearable.
 
-## The Solution
-
-**QuickFieldToggle** puts your custom field actions directly in the right-click context menu. One click. Done.
+QuickFieldToggle puts those actions in the right-click menu. One click, done.
 
 ---
 
-## Why I Built This
+## What It Does
 
-I maintain a large LaunchBox library with extensive custom field usage:
-
-- **Play Queue** - Tracking what I'm playing, what's on deck, and my backlog
-- **Awards** - Tagging games with GOTY wins, nominations, and other accolades
-- **Discovery Features** - Flagging games for my "discovery bin" rotation
-- **Platform-Specific Data** - First-party titles, Virtual Console releases, mini console appearances
-
-Managing all of this through the Edit dialog was slow and frustrating. I wanted the same kind of quick-toggle experience you get with favorites (the star), but for ANY custom field.
-
-QuickFieldToggle is the result.
+- **Toggle custom fields instantly** from the context menu
+- **Create fields on-the-fly** — no pre-setup required
+- **Multi-field actions** — "Move to Now Playing" sets one field and clears others
+- **Multi-value picker** — for semicolon-separated fields, check/uncheck values from a submenu
+- **Conditional menus** — show Nintendo tools only for Nintendo games
+- **Visual indicators** — checkmarks show current state
+- **Custom icons** — platform icons, playlist icons, or your own
+- **Hot reload** — edit your config without restarting LaunchBox
 
 ---
 
-## ✨ Features
+## Quick Start
 
-- **⚡ Single-click field toggling** - No more Edit → Custom Fields → scroll → save
-- **✓ Visual status indicators** - Checkmarks show current field state
-- **🔗 Multi-field actions** - One click can set/remove multiple fields
-- **📋 Multi-value picker** - Select from semicolon-separated value lists
-- **🎯 Conditional display** - Show/hide items based on platform, genre, etc.
-- **🎨 Custom icons** - Platform icons, playlist icons, or custom images
-- **🔄 Hot reload** - Update config without restarting LaunchBox
-- **📝 JSON configuration** - No recompilation needed
+1. Download the [latest release](https://github.com/brandontravis/launchbox-quick-field-toggle/releases)
+2. Extract the `QuickFieldToggle` folder to `LaunchBox\Plugins\`
+3. Rename `quickfieldtoggle.sample-simple.json` to `quickfieldtoggle.json`
+4. Restart LaunchBox
+5. Right-click any game
 
----
-
-## Use Cases
-
-### Play Queue Management
-
-Create mutually exclusive states: "Move to Now Playing" sets the Now Playing field AND removes Backlog and On Deck. One click, three field changes.
-
-### Award Tracking
-
-Semicolon-separated field values become checkable submenus. See all awards in your library, check the ones that apply to this game.
-
-### Platform-Specific Tools
-
-Show "First Party" toggle only for Nintendo games. Show "PSN Classic" only for PlayStation. The menu adapts to what you're looking at.
-
-### Bulk Tagging
-
-Select 50 games, right-click, toggle a field. All 50 updated instantly.
+That's it. You now have a "Play Queue" submenu with On Deck and Backlog toggles.
 
 ---
 
-## 📦 Installation
+## Sample Configurations
 
-1. Download the [latest release](https://github.com/brandontravis/launchbox-quick-field-toggle/releases/latest)
-2. Extract the `QuickFieldToggle` folder to `LaunchBox\Plugins\`:
-   ```
-   Plugins\
-   └── QuickFieldToggle\
-       ├── QuickFieldToggle.dll
-       ├── quickfieldtoggle.json   ← rename from .sample.json
-       ├── README.md
-       └── icons\                  ← for custom icons (optional)
-   ```
-3. Restart LaunchBox
-4. Right-click any game → See your new menu options!
+Two samples are included:
 
-> **Windows Security:** If the plugin doesn't load, right-click the DLL → Properties → Unblock
+| File | Description |
+|------|-------------|
+| `sample-simple.json` | Basic play queue (On Deck / Backlog) |
+| `sample-complex.json` | Full working config with awards, conditional menus, multi-value pickers |
 
-## 🚀 Quick Start
-
-Rename `quickfieldtoggle.sample.json` to `quickfieldtoggle.json` for a working demo with **On Deck** and **Backlog** fields.
+The complex sample is my actual configuration for managing 31k games. It's not a sanitized demo—it's real usage.
 
 ---
 
-## 💡 Example Configuration
+## Documentation
+
+| Doc | Description |
+|-----|-------------|
+| [Configuration Reference](docs/configuration.md) | All options, operators, and settings |
+| [My Library Walkthrough](docs/walkthrough.md) | How I use QFT with 31k games—philosophy, fields, and real examples |
+
+---
+
+## A Taste of the Config
+
+**Mutually exclusive play queue:**
 
 ```json
 {
-  "groups": [
-    {
-      "groupName": "Play Queue",
-      "icon": "default",
-      "iconCascade": "inherit",
-      "items": [
-        {
-          "fieldName": "Now Playing",
-          "menuLabel": "Move to Now Playing",
-          "operationType": "set",
-          "additionalActions": [
-            { "field": "Backlog", "action": "remove" }
-          ]
-        }
-      ]
-    }
+  "fieldName": "Now Playing",
+  "menuLabel": "Move to Now Playing",
+  "operationType": "set",
+  "additionalActions": [
+    { "field": "Backlog", "action": "remove" },
+    { "field": "On Deck", "action": "remove" }
   ]
 }
 ```
 
----
+**Conditional Nintendo-only menu:**
 
-## 📖 Documentation
-
-See the [**Configuration Guide**](docs/CONFIGURATION.md) for complete setup instructions with examples.
-
-**Jump to:**
-- [Simple Toggles](docs/CONFIGURATION.md#simple-toggles)
-- [Action Menus](docs/CONFIGURATION.md#action-menus-move-to-backlog)
-- [Multi-Value Picker](docs/CONFIGURATION.md#multi-value-picker)
-- [Conditional Display](docs/CONFIGURATION.md#conditional-display)
-- [Icons](docs/CONFIGURATION.md#icons)
-
----
-
-## Design Philosophy
-
-### Configuration Over Code
-
-Everything is controlled via a JSON file. No recompilation needed. Want to add a new toggle? Edit the JSON. Want to reorganize your menus? Edit the JSON.
-
-### Smart Defaults, Full Control
-
-The plugin tries to do the right thing automatically:
-- Checkmarks show current state
-- Multi-select works intelligently (set on all if mixed, remove from all if unanimous)
-- Icons inherit from parent groups
-
-But you can override any behavior when needed.
-
-### Respect the User's Setup
-
-- Uses your active Platform Icon pack
-- Reads LaunchBox settings for consistency
-- Hot reload means no restarts required
-
----
-
-## 📁 Repository Structure
-
-```
-QuickFieldToggle/
-├── LICENSE
-├── README.md                         ← You are here
-├── build-release.sh                  ← Script to create release zip
-├── assets/                           ← Screenshots for docs
-│   └── screenshot.png
-├── docs/                             ← Documentation
-│   └── CONFIGURATION.md
-├── release/                          ← Files included in release zip
-│   ├── README.md                     ← User-facing readme
-│   ├── quickfieldtoggle.sample.json  ← Sample config
-│   └── icons/                        ← Custom icon folder (empty)
-└── src/                              ← Source code
-    ├── QuickFieldToggle.csproj
-    ├── QuickFieldTogglePlugin.cs
-    └── qft-logo-16x16.png            ← Embedded in DLL
+```json
+{
+  "groupName": "Nintendo Tools",
+  "conditions": [
+    { "logic": "or", "rules": [
+      { "field": "Platform", "operator": "contains", "value": "Nintendo" }
+    ]}
+  ]
+}
 ```
 
-## 🤝 Contributing
+**Multi-value award picker:**
 
-Contributions welcome! Feel free to:
-- Report bugs
-- Suggest features
-- Submit pull requests
+```json
+{
+  "fieldName": "Awards Won",
+  "mode": "multiValue",
+  "valueSource": "field"
+}
+```
 
-## 📄 License
-
-[MIT License](LICENSE) - Free to use, modify, and distribute.
-
-## 🙏 Credits
-
-Developed for the LaunchBox community.
+See the [Configuration Reference](docs/configuration.md) for the complete syntax.
 
 ---
 
-**[⬇️ Download Latest Release](https://github.com/brandontravis/launchbox-quick-field-toggle/releases/latest)**
+## Requirements
+
+- LaunchBox 13.24+ (Windows)
+- .NET Framework 4.8
+
+---
+
+## License
+
+MIT — use it, modify it, share it.
+
+---
+
+## Feedback
+
+Found a bug? Have an idea? [Open an issue](https://github.com/brandontravis/launchbox-quick-field-toggle/issues) or find me in the LaunchBox forums.

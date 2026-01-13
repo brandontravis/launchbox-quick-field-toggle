@@ -1,20 +1,21 @@
 {
-  "_comment": "QuickFieldToggle - Sample Configuration",
+  "_comment": "QuickFieldToggle - SIMPLE Sample Configuration",
   "_comment2": "Rename this file to 'quickfieldtoggle.json' to use it",
   "_comment3": "Full documentation: https://github.com/brandontravis/launchbox-quick-field-toggle",
+  "_comment4": "See 'quickfieldtoggle.sample-complex.json' for advanced features",
+
+  "defaultIcon": "default",
+  "defaultIconCascade": "inherit",
 
   "groups": [
     {
       "groupName": "Play Queue",
-      "icon": "default",
-      "iconCascade": "inherit",
       "enabled": true,
       "items": [
         {
           "fieldName": "On Deck",
           "menuLabel": "Move to On Deck",
           "toggledMenuLabel": "✓ On Deck",
-          "enableValue": "true",
           "operationType": "set",
           "enabled": true,
           "additionalActions": [
@@ -24,35 +25,12 @@
         {
           "fieldName": "Backlog",
           "menuLabel": "Move to Backlog",
-          "toggledMenuLabel": "✓ On Backlog",
-          "enableValue": "true",
+          "toggledMenuLabel": "✓ In Backlog",
           "operationType": "set",
           "enabled": true,
           "additionalActions": [
             { "field": "On Deck", "action": "remove" }
           ]
-        }
-      ]
-    },
-    {
-      "groupName": "Quick Tags",
-      "icon": "default",
-      "iconCascade": "inherit",
-      "enabled": true,
-      "items": [
-        {
-          "fieldName": "On Deck",
-          "menuLabel": "On Deck",
-          "enableValue": "true",
-          "operationType": "toggle",
-          "enabled": true
-        },
-        {
-          "fieldName": "Backlog",
-          "menuLabel": "Backlog",
-          "enableValue": "true",
-          "operationType": "toggle",
-          "enabled": true
         }
       ]
     }
