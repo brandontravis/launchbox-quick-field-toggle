@@ -1,7 +1,7 @@
 {
-  "_comment": "QuickFieldToggle - Simple Drop-in Sample",
-  "_comment2": "This sample creates two custom fields: 'On Deck' and 'Backlog'",
-  "_comment3": "Rename this file to 'quickfieldtoggle.json' to use it",
+  "_comment": "QuickFieldToggle - Sample Configuration",
+  "_comment2": "Rename this file to 'quickfieldtoggle.json' to use it",
+  "_comment3": "Full documentation: https://github.com/brandontravis/launchbox-quick-field-toggle",
 
   "groups": [
     {
@@ -59,3 +59,4 @@
   ],
   "ungroupedItems": []
 }
+

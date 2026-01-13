@@ -83,8 +83,9 @@ Select 50 games, right-click, toggle a field. All 50 updated instantly.
    Plugins\
    └── QuickFieldToggle\
        ├── QuickFieldToggle.dll
-       ├── quickfieldtoggle.json  (rename from .sample.json)
-       └── README.md
+       ├── quickfieldtoggle.json   ← rename from .sample.json
+       ├── README.md
+       └── icons\                  ← for custom icons (optional)
    ```
 3. Restart LaunchBox
 4. Right-click any game → See your new menu options!
@@ -164,17 +165,20 @@ But you can override any behavior when needed.
 ```
 QuickFieldToggle/
 ├── LICENSE
-├── README.md                    ← You are here
-├── assets/                      ← Screenshots
+├── README.md                         ← You are here
+├── build-release.sh                  ← Script to create release zip
+├── assets/                           ← Screenshots for docs
 │   └── screenshot.png
-├── docs/                        ← Documentation
-│   └── CONFIGURATION.md         ← Complete config guide
-├── dist/                        ← Release packages
-│   ├── QuickFieldToggle/        ← Folder to extract to Plugins
-│   └── QuickFieldToggle.zip     ← Download this
-└── src/                         ← Source code
+├── docs/                             ← Documentation
+│   └── CONFIGURATION.md
+├── release/                          ← Files included in release zip
+│   ├── README.md                     ← User-facing readme
+│   ├── quickfieldtoggle.sample.json  ← Sample config
+│   └── icons/                        ← Custom icon folder (empty)
+└── src/                              ← Source code
     ├── QuickFieldToggle.csproj
-    └── QuickFieldTogglePlugin.cs
+    ├── QuickFieldTogglePlugin.cs
+    └── qft-logo-16x16.png            ← Embedded in DLL
 ```
 
 ## 🤝 Contributing

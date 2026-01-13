@@ -40,6 +40,8 @@
     <None Update="quickfieldtoggle.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- Embed logo into DLL -->
+    <EmbeddedResource Include="qft-logo-16x16.png" />
   </ItemGroup>
 
 </Project>

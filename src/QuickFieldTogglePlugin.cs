@@ -919,36 +919,49 @@ namespace QuickFieldToggle
         }
 
         /// <summary>
-        /// Generates the default QFT logo icon (16x16)
+        /// Loads the default QFT logo icon from embedded resource (16x16)
         /// </summary>
         private static Image GetDefaultIcon()
         {
             if (_defaultIcon != null)
                 return _defaultIcon;
 
-            // Create a simple 16x16 "QFT" style icon
+            try
+            {
+                // Load from embedded resource
+                var assembly = Assembly.GetExecutingAssembly();
+                using (var stream = assembly.GetManifestResourceStream("QuickFieldToggle.qft-logo-16x16.png"))
+                {
+                    if (stream != null)
+                    {
+                        _defaultIcon = Image.FromStream(stream);
+                        return _defaultIcon;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading embedded icon: {ex.Message}");
+            }
+
+            // Fallback: generate a simple icon if embedded resource not found
             var bmp = new Bitmap(16, 16);
             using (var g = Graphics.FromImage(bmp))
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.Clear(Color.Transparent);
 
-                // Draw a rounded rectangle background
-                using (var brush = new SolidBrush(Color.FromArgb(100, 149, 237))) // Cornflower blue
+                using (var brush = new SolidBrush(Color.FromArgb(100, 149, 237)))
                 {
                     g.FillRectangle(brush, 1, 1, 14, 14);
                 }
 
-                // Draw "Q" letter stylized as a toggle
                 using (var pen = new Pen(Color.White, 1.5f))
                 {
-                    // Circle part of Q
                     g.DrawEllipse(pen, 3, 3, 8, 8);
-                    // Tail of Q (like a toggle switch)
                     g.DrawLine(pen, 9, 9, 12, 12);
                 }
 
-                // Small dot to represent "on" state
                 using (var brush = new SolidBrush(Color.LightGreen))
                 {
                     g.FillEllipse(brush, 10, 2, 4, 4);

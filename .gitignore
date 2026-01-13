@@ -1,7 +1,9 @@
 # Build outputs
 src/bin/
 src/obj/
+output/
 *.pdb
+*.dll
 
 # NuGet
 *.nupkg
@@ -25,5 +27,4 @@ src/quickfieldtoggle.json
 src/quickfieldtoggle.custom.json
 
 # LaunchBox reference DLL (users must provide their own)
-src/*.LaunchBox*.dll
-src/Unbroken.*.dll
+Unbroken.*.dll
