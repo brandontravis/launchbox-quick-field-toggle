@@ -1427,6 +1427,11 @@ namespace QuickFieldToggle
             if (gamesToProcess == null || gamesToProcess.Length == 0) return;
 
             string opType = _config.OperationType?.ToLower() ?? "toggle";
+            
+            // IMPORTANT: For toggle operations, compute this ONCE before the loop
+            // Otherwise the check flips after the first game is modified, causing
+            // inconsistent behavior on bulk operations
+            bool shouldRemove = (opType == "toggle") && IsEnabledForGames(gamesToProcess);
 
             foreach (var game in gamesToProcess)
             {
@@ -1444,15 +1449,14 @@ namespace QuickFieldToggle
                         break;
 
                     default: // "toggle"
-                        bool allEnabled = IsEnabledForGames(gamesToProcess);
-                        if (allEnabled)
+                        if (shouldRemove)
                         {
-                            // All games have it - remove from all
+                            // All games had it at start - remove from all
                             FieldHelper.RemoveField(game, _config.FieldName);
                         }
                         else
                         {
-                            // Not all have it - set on all (and process additional actions)
+                            // Not all had it at start - set on all (and process additional actions)
                             FieldHelper.SetField(game, _config.FieldName, _config.EnableValue);
                             FieldHelper.ProcessAdditionalActions(game, _config.AdditionalActions);
                         }
