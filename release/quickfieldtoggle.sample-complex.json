@@ -5,6 +5,24 @@
   "_comment4": "Full documentation: https://github.com/brandontravis/launchbox-quick-field-toggle",
   "defaultIcon": "default",
   "defaultIconCascade": "inherit",
+  
+  "_comment5": "=== SELECTION INDICATOR: How to show state when multiple games selected ===",
+  "selectionIndicator": "symbol",
+  "valueSortOrder": "alphabetical",
+  
+  "_comment6": "=== BULK CONFIRMATION: Prompt before modifying many games at once ===",
+  "confirmBulkChanges": true,
+  "confirmBulkThreshold": 10,
+  
+  "_comment7": "=== SELECTIVE CLEAR: Shows all fields on selected games for individual clearing ===",
+  "injectSelectiveClear": true,
+  "selectiveClearLabel": "Selectively Clear Fields",
+  "selectiveClearIndicator": "count",
+  
+  "_comment8": "=== CLEAR ALL FIELDS: Nuclear option to wipe all custom fields ===",
+  "injectClearAllFields": true,
+  "clearAllFieldsLabel": "Clear All Custom Fields",
+  
   "groups": [
     {
       "_comment": "=== PLAY QUEUE: Manage game backlog with mutually exclusive states ===",

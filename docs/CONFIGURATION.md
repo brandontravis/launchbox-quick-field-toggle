@@ -21,6 +21,10 @@ After making changes, reload via **Tools → Reload Quick Field Toggle Config** 
 {
   "defaultIcon": "default",
   "defaultIconCascade": "inherit",
+  "confirmBulkChanges": false,
+  "confirmBulkThreshold": 10,
+  "injectClearAllFields": false,
+  "clearAllFieldsLabel": "Clear All Custom Fields",
   "groups": [...],
   "ungroupedItems": [...]
 }
@@ -30,6 +34,17 @@ After making changes, reload via **Tools → Reload Quick Field Toggle Config** 
 |----------|-------------|
 | `defaultIcon` | Default icon for groups (see [Icons](#icons)) |
 | `defaultIconCascade` | Default cascade behavior: `"none"` or `"inherit"` |
+| `confirmBulkChanges` | If `true`, show confirmation dialog for bulk operations |
+| `confirmBulkThreshold` | Number of games that triggers confirmation (default: 10) |
+| `injectSelectiveClear` | If `true`, add a "Selectively Clear Fields" submenu |
+| `selectiveClearLabel` | Custom label for the selective clear menu |
+| `selectiveClearIcon` | Icon for selective clear menu (default: embedded delete icon) |
+| `injectClearAllFields` | If `true`, add a "Clear All Custom Fields" menu item |
+| `clearAllFieldsLabel` | Custom label for the clear all fields menu item |
+| `clearAllFieldsIcon` | Icon for clear all fields menu (default: embedded delete icon) |
+| `selectionIndicator` | Display style for multi-selection: `"symbol"` (default: ✓/◐) or `"count"` (X of Y) |
+| `selectiveClearIndicator` | Override selection indicator for Selectively Clear Fields (default: uses `selectionIndicator`) |
+| `valueSortOrder` | Default sort for multi-value pickers: `"alphabetical"` (A-Z, default), `"reverseAlphabetical"` (Z-A), `"mostCommon"`, `"leastCommon"`, `"none"` |
 | `groups` | Array of menu groups (submenus) |
 | `ungroupedItems` | Array of items that appear directly in the context menu |
 
@@ -57,6 +72,8 @@ Groups create submenus in the context menu.
 | `icon` | No | Icon for this group (inherits from `defaultIcon`) |
 | `iconCascade` | No | `"inherit"` (items get group icon) or `"none"` |
 | `conditions` | No | Show group only when conditions match (see [Conditions](#conditions)) |
+| `valueSortOrder` | No | Override sort for multi-value items in this group |
+| `selectionIndicator` | No | Override selection display: `"symbol"` or `"count"` |
 | `items` | Yes | Array of menu items |
 
 ---
@@ -86,6 +103,9 @@ Items are the actual menu entries that do things.
 | `icon` | No | Override icon for this item |
 | `conditions` | No | Show item only when conditions match |
 | `additionalActions` | No | Other fields to set/remove (see below) |
+| `requireConfirmation` | No | If `true`, always show confirmation dialog for this item |
+| `valueSortOrder` | No | Override sort for this multi-value item: `"alphabetical"`, `"reverseAlphabetical"`, `"mostCommon"`, `"leastCommon"`, `"none"` |
+| `selectionIndicator` | No | Override selection display: `"symbol"` or `"count"` |
 
 ### Operation Types
 
@@ -300,3 +320,56 @@ No restart required. Changes take effect immediately.
 ## Full Example
 
 See `quickfieldtoggle.sample-complex.json` for a complete working configuration.
+
+| File | Description |
+|------|-------------|
+| `quickfieldtoggle.sample.json` | Simple demo with On Deck / Backlog |
+| `quickfieldtoggle.sample.robust.json` | Every feature demonstrated with comments |
+
+---
+
+## Need Help?
+
+- **GitHub Issues:** [Report bugs or request features](https://github.com/brandontravis/launchbox-quick-field-toggle/issues)
+- **LaunchBox Forums:** Post in the plugin thread
+
+---
+
+[← Back to README](../README.md) | [About QuickFieldToggle](ABOUT.md)
+
+
+The download includes two sample configurations:
+
+| File | Description |
+|------|-------------|
+| `quickfieldtoggle.sample.json` | Simple demo with On Deck / Backlog |
+| `quickfieldtoggle.sample.robust.json` | Every feature demonstrated with comments |
+
+---
+
+## Need Help?
+
+- **GitHub Issues:** [Report bugs or request features](https://github.com/brandontravis/launchbox-quick-field-toggle/issues)
+- **LaunchBox Forums:** Post in the plugin thread
+
+---
+
+[← Back to README](../README.md) | [About QuickFieldToggle](ABOUT.md)
+
+
+| File | Description |
+|------|-------------|
+| `quickfieldtoggle.sample.json` | Simple demo with On Deck / Backlog |
+| `quickfieldtoggle.sample.robust.json` | Every feature demonstrated with comments |
+
+---
+
+## Need Help?
+
+- **GitHub Issues:** [Report bugs or request features](https://github.com/brandontravis/launchbox-quick-field-toggle/issues)
+- **LaunchBox Forums:** Post in the plugin thread
+
+---
+
+[← Back to README](../README.md) | [About QuickFieldToggle](ABOUT.md)
+

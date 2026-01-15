@@ -63,6 +63,15 @@ namespace QuickFieldToggle
         // Icon: "default", "media:Name", "path:filename.png", or null
         // Note: "playlist:Name" is deprecated and will be removed in a future release
         public string Icon { get; set; }
+        
+        // If true, always show confirmation dialog regardless of bulk threshold
+        public bool RequireConfirmation { get; set; } = false;
+        
+        // Sort order for multi-value pickers: "alphabetical", "reverseAlphabetical", "mostCommon", "leastCommon", "none", or null (inherit)
+        public string ValueSortOrder { get; set; }
+        
+        // Selection indicator override for this item: "symbol" or "count" (null = inherit from group/root)
+        public string SelectionIndicator { get; set; }
     }
 
     public class GroupConfig
@@ -78,6 +87,12 @@ namespace QuickFieldToggle
         
         // IconCascade: "inherit" = items without icons inherit group's icon, "none" = no inheritance (default)
         public string IconCascade { get; set; } = "none";
+        
+        // Sort order for multi-value pickers in this group: "alphabetical", "reverseAlphabetical", "mostCommon", "leastCommon", "none", or null (inherit from root)
+        public string ValueSortOrder { get; set; }
+        
+        // Selection indicator override for this group: "symbol" or "count" (null = inherit from root)
+        public string SelectionIndicator { get; set; }
     }
 
     public class PluginConfiguration
@@ -88,6 +103,29 @@ namespace QuickFieldToggle
         // Root-level defaults (users can override per-group/item)
         public string DefaultIcon { get; set; } = "default";
         public string DefaultIconCascade { get; set; } = "none";
+        
+        // Bulk confirmation settings
+        public bool ConfirmBulkChanges { get; set; } = false;
+        public int ConfirmBulkThreshold { get; set; } = 10;
+        
+        // Clear All Custom Fields feature
+        public bool InjectClearAllFields { get; set; } = false;
+        public string ClearAllFieldsLabel { get; set; } = "Clear All Custom Fields";
+        public string ClearAllFieldsIcon { get; set; } = "delete";
+        
+        // Selective Clear Fields feature
+        public bool InjectSelectiveClear { get; set; } = false;
+        public string SelectiveClearLabel { get; set; } = "Selectively Clear Fields";
+        public string SelectiveClearIcon { get; set; } = "delete";
+        
+        // Selection indicator style: "symbol" (default: ✓/◐) or "count" (X of Y)
+        public string SelectionIndicator { get; set; } = "symbol";
+        
+        // Override selection indicator for SelectiveClear feature (null = use root SelectionIndicator)
+        public string SelectiveClearIndicator { get; set; }
+        
+        // Default sort order for multi-value pickers: "alphabetical", "reverseAlphabetical", "mostCommon", "leastCommon", "none"
+        public string ValueSortOrder { get; set; } = "alphabetical";
 
         private static PluginConfiguration _instance;
         private static readonly object _lock = new object();
@@ -147,6 +185,25 @@ namespace QuickFieldToggle
             // Parse root-level defaults
             config.DefaultIcon = ExtractStringValue(json, "defaultIcon") ?? "default";
             config.DefaultIconCascade = ExtractStringValue(json, "defaultIconCascade") ?? "none";
+            
+            // Parse bulk confirmation settings
+            config.ConfirmBulkChanges = ExtractBoolValue(json, "confirmBulkChanges", false);
+            config.ConfirmBulkThreshold = ExtractIntValue(json, "confirmBulkThreshold", 10);
+            
+            // Parse clear all fields settings
+            config.InjectClearAllFields = ExtractBoolValue(json, "injectClearAllFields", false);
+            config.ClearAllFieldsLabel = ExtractStringValue(json, "clearAllFieldsLabel") ?? "Clear All Custom Fields";
+            config.ClearAllFieldsIcon = ExtractStringValue(json, "clearAllFieldsIcon") ?? "delete";
+            
+            // Parse selective clear settings
+            config.InjectSelectiveClear = ExtractBoolValue(json, "injectSelectiveClear", false);
+            config.SelectiveClearLabel = ExtractStringValue(json, "selectiveClearLabel") ?? "Selectively Clear Fields";
+            config.SelectiveClearIcon = ExtractStringValue(json, "selectiveClearIcon") ?? "delete";
+            
+            // Parse selection indicator and sort settings
+            config.SelectionIndicator = ExtractStringValue(json, "selectionIndicator") ?? "symbol";
+            config.SelectiveClearIndicator = ExtractStringValue(json, "selectiveClearIndicator");
+            config.ValueSortOrder = ExtractStringValue(json, "valueSortOrder") ?? "alphabetical";
 
             // Parse groups
             int groupsStart = json.IndexOf("\"groups\"");
@@ -163,11 +220,19 @@ namespace QuickFieldToggle
                     foreach (var groupObj in groupObjects)
                     {
                         var group = new GroupConfig();
-                        group.GroupName = ExtractStringValue(groupObj, "groupName");
-                        group.Enabled = ExtractBoolValue(groupObj, "enabled");
-                        group.Conditions = ParseConditions(groupObj);
-                        group.Icon = ExtractStringValue(groupObj, "icon") ?? config.DefaultIcon;
-                        group.IconCascade = ExtractStringValue(groupObj, "iconCascade") ?? config.DefaultIconCascade;
+                        
+                        // Extract group-level properties by removing the "items" array content
+                        // This ensures we don't accidentally pick up item-level properties
+                        // JSON objects are unordered, so items can appear anywhere
+                        string groupPropsOnly = RemoveJsonArray(groupObj, "items");
+                        
+                        group.GroupName = ExtractStringValue(groupPropsOnly, "groupName");
+                        group.Enabled = ExtractBoolValue(groupPropsOnly, "enabled");
+                        group.Conditions = ParseConditions(groupObj);  // Conditions have their own logic
+                        group.Icon = ExtractStringValue(groupPropsOnly, "icon") ?? config.DefaultIcon;
+                        group.IconCascade = ExtractStringValue(groupPropsOnly, "iconCascade") ?? config.DefaultIconCascade;
+                        group.ValueSortOrder = ExtractStringValue(groupPropsOnly, "valueSortOrder");
+                        group.SelectionIndicator = ExtractStringValue(groupPropsOnly, "selectionIndicator");
 
                         // Parse items within this group
                         int itemsStart = groupObj.IndexOf("\"items\"");
@@ -257,6 +322,49 @@ namespace QuickFieldToggle
             return -1;
         }
 
+        /// <summary>
+        /// Removes a named array property from a JSON object string.
+        /// Used to exclude nested content (like "items") when parsing parent-level properties.
+        /// This ensures JSON property order doesn't matter.
+        /// </summary>
+        private static string RemoveJsonArray(string json, string arrayName)
+        {
+            string pattern = $"\"{arrayName}\"";
+            int keyStart = json.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
+            if (keyStart == -1) return json;
+            
+            // Find the opening bracket of the array
+            int bracketStart = json.IndexOf('[', keyStart);
+            if (bracketStart == -1) return json;
+            
+            // Find the matching closing bracket
+            int bracketEnd = FindMatchingBracket(json, bracketStart);
+            if (bracketEnd == -1) return json;
+            
+            // Remove from the key to the end of the array (including any trailing comma)
+            int removeEnd = bracketEnd + 1;
+            
+            // Skip trailing whitespace and comma
+            while (removeEnd < json.Length && (char.IsWhiteSpace(json[removeEnd]) || json[removeEnd] == ','))
+            {
+                removeEnd++;
+            }
+            
+            // Also handle leading comma if this wasn't the first property
+            int removeStart = keyStart;
+            int checkPos = keyStart - 1;
+            while (checkPos >= 0 && char.IsWhiteSpace(json[checkPos]))
+            {
+                checkPos--;
+            }
+            if (checkPos >= 0 && json[checkPos] == ',')
+            {
+                removeStart = checkPos;
+            }
+            
+            return json.Substring(0, removeStart) + json.Substring(removeEnd);
+        }
+
         private static List<string> ExtractObjects(string arrayContent)
         {
             var objects = new List<string>();
@@ -309,6 +417,9 @@ namespace QuickFieldToggle
             toggle.Mode = ExtractStringValue(obj, "mode") ?? "simple";
             toggle.ValueSource = ExtractStringValue(obj, "valueSource") ?? "config";
             toggle.Icon = ExtractStringValue(obj, "icon");
+            toggle.RequireConfirmation = ExtractBoolValue(obj, "requireConfirmation", false);
+            toggle.ValueSortOrder = ExtractStringValue(obj, "valueSortOrder");
+            toggle.SelectionIndicator = ExtractStringValue(obj, "selectionIndicator");
             
             // Parse additionalActions
             toggle.AdditionalActions = ParseAdditionalActions(obj);
@@ -493,17 +604,42 @@ namespace QuickFieldToggle
             return json.Substring(valueStart, valueEnd - valueStart);
         }
 
-        private static bool ExtractBoolValue(string json, string key)
+        private static bool ExtractBoolValue(string json, string key, bool defaultValue = true)
         {
             string pattern = $"\"{key}\"";
             int keyIndex = json.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
-            if (keyIndex == -1) return true;
+            if (keyIndex == -1) return defaultValue;
 
             int colonIndex = json.IndexOf(':', keyIndex);
-            if (colonIndex == -1) return true;
+            if (colonIndex == -1) return defaultValue;
 
             string afterColon = json.Substring(colonIndex + 1, Math.Min(20, json.Length - colonIndex - 1)).Trim().ToLower();
-            return !afterColon.StartsWith("false");
+            if (afterColon.StartsWith("true")) return true;
+            if (afterColon.StartsWith("false")) return false;
+            return defaultValue;
+        }
+
+        private static int ExtractIntValue(string json, string key, int defaultValue = 0)
+        {
+            string pattern = $"\"{key}\"";
+            int keyIndex = json.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
+            if (keyIndex == -1) return defaultValue;
+
+            int colonIndex = json.IndexOf(':', keyIndex);
+            if (colonIndex == -1) return defaultValue;
+
+            // Find the number after the colon
+            int start = colonIndex + 1;
+            while (start < json.Length && char.IsWhiteSpace(json[start])) start++;
+            
+            int end = start;
+            while (end < json.Length && (char.IsDigit(json[end]) || json[end] == '-')) end++;
+            
+            if (end > start && int.TryParse(json.Substring(start, end - start), out int result))
+            {
+                return result;
+            }
+            return defaultValue;
         }
 
         private static PluginConfiguration GetDefaultConfig()
@@ -652,6 +788,44 @@ namespace QuickFieldToggle
 
     #endregion
 
+    #region Confirmation Helper
+
+    /// <summary>
+    /// Helper class for bulk operation confirmation dialogs
+    /// </summary>
+    public static class ConfirmationHelper
+    {
+        /// <summary>
+        /// Shows a confirmation dialog if needed based on config settings
+        /// Returns true if the operation should proceed, false to cancel
+        /// </summary>
+        public static bool ShouldProceed(int gameCount, bool itemRequiresConfirmation, string actionDescription)
+        {
+            var config = PluginConfiguration.Instance;
+            
+            // Check if confirmation is needed
+            bool needsConfirmation = itemRequiresConfirmation || 
+                (config.ConfirmBulkChanges && gameCount >= config.ConfirmBulkThreshold);
+            
+            if (!needsConfirmation)
+                return true;
+            
+            string message = gameCount == 1
+                ? $"Are you sure you want to {actionDescription}?"
+                : $"Are you sure you want to {actionDescription} for {gameCount} games?";
+            
+            var result = System.Windows.Forms.MessageBox.Show(
+                message,
+                "Confirm Action",
+                System.Windows.Forms.MessageBoxButtons.YesNo,
+                System.Windows.Forms.MessageBoxIcon.Question);
+            
+            return result == System.Windows.Forms.DialogResult.Yes;
+        }
+    }
+
+    #endregion
+
     #region Icon Helper
 
     /// <summary>
@@ -664,6 +838,7 @@ namespace QuickFieldToggle
     {
         private static readonly Dictionary<string, Image> _iconCache = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
         private static Image _defaultIcon;
+        private static Image _deleteIcon;
         private static string _launchBoxRoot;
         private static string _mediaPackPath;
         private static string _activePlatformIconPack;
@@ -790,6 +965,10 @@ namespace QuickFieldToggle
                     if (iconSpec.Equals("default", StringComparison.OrdinalIgnoreCase))
                     {
                         icon = GetDefaultIcon();
+                    }
+                    else if (iconSpec.Equals("delete", StringComparison.OrdinalIgnoreCase))
+                    {
+                        icon = GetDeleteIcon();
                     }
                     else if (iconSpec.StartsWith("media:", StringComparison.OrdinalIgnoreCase))
                     {
@@ -993,6 +1172,45 @@ namespace QuickFieldToggle
         }
 
         /// <summary>
+        /// Loads the delete icon from embedded resource
+        /// </summary>
+        private static Image GetDeleteIcon()
+        {
+            if (_deleteIcon != null)
+                return _deleteIcon;
+
+            try
+            {
+                // Load from embedded resource
+                var assembly = Assembly.GetExecutingAssembly();
+                using (var stream = assembly.GetManifestResourceStream("QuickFieldToggle.delete.png"))
+                {
+                    if (stream != null)
+                    {
+                        var img = Image.FromStream(stream);
+                        // Resize if needed
+                        if (img.Width != 16 || img.Height != 16)
+                        {
+                            _deleteIcon = ResizeImage(img, 16, 16);
+                        }
+                        else
+                        {
+                            _deleteIcon = img;
+                        }
+                        return _deleteIcon;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading embedded delete icon: {ex.Message}");
+            }
+
+            // Fallback to default icon if delete icon not found
+            return GetDefaultIcon();
+        }
+
+        /// <summary>
         /// Gets a platform's icon from LaunchBox data (fallback if not in media pack)
         /// </summary>
         private static Image GetPlatformIconFromData(string platformName)
@@ -1161,6 +1379,8 @@ namespace QuickFieldToggle
                 _iconCache.Clear();
                 _defaultIcon?.Dispose();
                 _defaultIcon = null;
+                _deleteIcon?.Dispose();
+                _deleteIcon = null;
                 
                 // Reset active pack detection so it re-reads from settings on next icon load
                 _activePlatformIconPack = null;
@@ -1369,35 +1589,58 @@ namespace QuickFieldToggle
         private readonly ToggleConfig _config;
         private readonly IGame[] _selectedGames;
         private readonly string _inheritedIcon;
+        private readonly GroupConfig _groupConfig;
 
-        public ToggleMenuItem(ToggleConfig config, IGame[] selectedGames, string inheritedIcon = null)
+        public ToggleMenuItem(ToggleConfig config, IGame[] selectedGames, string inheritedIcon = null, GroupConfig groupConfig = null)
         {
             _config = config;
             _selectedGames = selectedGames;
             _inheritedIcon = inheritedIcon;
+            _groupConfig = groupConfig;
+        }
+
+        // Resolve selection indicator with inheritance: item -> group -> root
+        private string GetSelectionIndicator()
+        {
+            var rootConfig = PluginConfiguration.Instance;
+            return _config.SelectionIndicator 
+                ?? _groupConfig?.SelectionIndicator 
+                ?? rootConfig.SelectionIndicator;
         }
 
         public string Caption
         {
             get
             {
-                bool allEnabled = IsEnabledForAllGames();
+                int enabledCount = _selectedGames.Count(g => FieldHelper.HasFieldWithValue(g, _config.FieldName, _config.EnableValue));
+                int totalCount = _selectedGames.Length;
+                bool allEnabled = enabledCount == totalCount;
+                bool noneEnabled = enabledCount == 0;
 
-                // If we have a toggledMenuLabel and field is enabled, use that
+                // If we have a toggledMenuLabel and ALL selected games have the value, use that
                 if (allEnabled && !string.IsNullOrEmpty(_config.ToggledMenuLabel))
                 {
                     return _config.ToggledMenuLabel;
                 }
 
-                // For "set" operation type, never show checkmark (it's a one-way action)
-                if (_config.OperationType?.ToLower() == "set")
+                // Apply selection indicator based on inherited config
+                string indicatorMode = GetSelectionIndicator();
+                if (totalCount > 1 && indicatorMode == "count")
                 {
-                    return _config.MenuLabel;
+                    // Count format: "Label (X of Y)"
+                    return $"{_config.MenuLabel} ({enabledCount} of {totalCount})";
                 }
-
-                // Default: show checkmark if enabled
-                string checkmark = allEnabled ? "✓ " : "";
-                return $"{checkmark}{_config.MenuLabel}";
+                else
+                {
+                    // Symbol format (default): ✓ (all) / ◐ (some) / blank (none)
+                    string indicator = "";
+                    if (allEnabled)
+                        indicator = "✓ ";
+                    else if (!noneEnabled && totalCount > 1)
+                        indicator = "◐ ";
+                    
+                    return $"{indicator}{_config.MenuLabel}";
+                }
             }
         }
 
@@ -1425,6 +1668,11 @@ namespace QuickFieldToggle
         {
             var gamesToProcess = selectedGames ?? _selectedGames;
             if (gamesToProcess == null || gamesToProcess.Length == 0) return;
+
+            // Check for confirmation
+            string actionDesc = $"modify '{_config.FieldName}'";
+            if (!ConfirmationHelper.ShouldProceed(gamesToProcess.Length, _config.RequireConfirmation, actionDesc))
+                return;
 
             string opType = _config.OperationType?.ToLower() ?? "toggle";
             
@@ -1488,12 +1736,14 @@ namespace QuickFieldToggle
         private readonly ToggleConfig _config;
         private readonly IGame[] _selectedGames;
         private readonly string _inheritedIcon;
+        private readonly GroupConfig _groupConfig;
 
-        public MultiValueMenuItem(ToggleConfig config, IGame[] selectedGames, string inheritedIcon = null)
+        public MultiValueMenuItem(ToggleConfig config, IGame[] selectedGames, string inheritedIcon = null, GroupConfig groupConfig = null)
         {
             _config = config;
             _selectedGames = selectedGames;
             _inheritedIcon = inheritedIcon;
+            _groupConfig = groupConfig;
         }
 
         public string Caption => _config.MenuLabel;
@@ -1516,12 +1766,24 @@ namespace QuickFieldToggle
 
         public bool Enabled => true;
 
+        // Resolve selection indicator with inheritance: item -> group -> root
+        private string GetSelectionIndicator()
+        {
+            var rootConfig = PluginConfiguration.Instance;
+            return _config.SelectionIndicator 
+                ?? _groupConfig?.SelectionIndicator 
+                ?? rootConfig.SelectionIndicator;
+        }
+
         public IEnumerable<IGameMenuItem> Children
         {
             get
             {
                 var values = GetAvailableValues();
-                return values.Select(v => new MultiValueOptionMenuItem(_config.FieldName, v, _selectedGames, _config.AdditionalActions));
+                string indicator = GetSelectionIndicator();
+                return values.Select(v => new MultiValueOptionMenuItem(
+                    _config.FieldName, v, _selectedGames, _config.AdditionalActions, 
+                    _config.RequireConfirmation, indicator));
             }
         }
 
@@ -1532,10 +1794,15 @@ namespace QuickFieldToggle
 
         private List<string> GetAvailableValues()
         {
+            // Determine effective sort order: item > group > root default
+            var rootConfig = PluginConfiguration.Instance;
+            string sortOrder = _config.ValueSortOrder ?? _groupConfig?.ValueSortOrder ?? rootConfig.ValueSortOrder ?? "alphabetical";
+            
             if (_config.ValueSource?.ToLower() == "field")
             {
                 // Get values from the field across ALL games in the library (not just selected)
-                var allValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                // Track frequency for potential frequency-based sorting
+                var valueCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 
                 // Scan all games in the library for this field's values
                 var allGames = PluginHelper.DataManager.GetAllGames();
@@ -1546,16 +1813,64 @@ namespace QuickFieldToggle
                     {
                         foreach (var v in fieldValue.Split(';').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)))
                         {
-                            allValues.Add(v);
+                            if (valueCounts.ContainsKey(v))
+                                valueCounts[v]++;
+                            else
+                                valueCounts[v] = 1;
                         }
                     }
                 }
-                return allValues.OrderBy(v => v).ToList();
+                
+                return SortValues(valueCounts.Keys.ToList(), valueCounts, sortOrder);
             }
             else
             {
-                // Use predefined values from config
-                return _config.Values ?? new List<string>();
+                // Use predefined values from config - no frequency data available
+                var values = _config.Values ?? new List<string>();
+                return SortValues(values, null, sortOrder);
+            }
+        }
+        
+        private List<string> SortValues(List<string> values, Dictionary<string, int> frequencyCounts, string sortOrder)
+        {
+            switch (sortOrder?.ToLower())
+            {
+                case "mostcommon":
+                    // Sort by frequency (most common first), then alphabetically for ties
+                    if (frequencyCounts != null)
+                    {
+                        return values
+                            .OrderByDescending(v => frequencyCounts.TryGetValue(v, out int count) ? count : 0)
+                            .ThenBy(v => v)
+                            .ToList();
+                    }
+                    // Fall through to alphabetical if no frequency data
+                    goto case "alphabetical";
+                    
+                case "leastcommon":
+                    // Sort by frequency (least common first), then alphabetically for ties
+                    if (frequencyCounts != null)
+                    {
+                        return values
+                            .OrderBy(v => frequencyCounts.TryGetValue(v, out int count) ? count : 0)
+                            .ThenBy(v => v)
+                            .ToList();
+                    }
+                    // Fall through to alphabetical if no frequency data
+                    goto case "alphabetical";
+                    
+                case "reversealphabetical":
+                    // Z-A sort
+                    return values.OrderByDescending(v => v).ToList();
+                    
+                case "none":
+                    // Return in original order
+                    return values;
+                    
+                case "alphabetical":
+                default:
+                    // A-Z sort
+                    return values.OrderBy(v => v).ToList();
             }
         }
     }
@@ -1569,22 +1884,49 @@ namespace QuickFieldToggle
         private readonly string _value;
         private readonly IGame[] _selectedGames;
         private readonly List<AdditionalAction> _additionalActions;
+        private readonly bool _requireConfirmation;
+        private readonly string _selectionIndicator;
 
-        public MultiValueOptionMenuItem(string fieldName, string value, IGame[] selectedGames, List<AdditionalAction> additionalActions)
+        public MultiValueOptionMenuItem(string fieldName, string value, IGame[] selectedGames, List<AdditionalAction> additionalActions, 
+            bool requireConfirmation = false, string selectionIndicator = null)
         {
             _fieldName = fieldName;
             _value = value;
             _selectedGames = selectedGames;
             _additionalActions = additionalActions;
+            _requireConfirmation = requireConfirmation;
+            
+            // Use passed value or fall back to root default
+            var rootConfig = PluginConfiguration.Instance;
+            _selectionIndicator = selectionIndicator ?? rootConfig.SelectionIndicator;
         }
 
         public string Caption
         {
             get
             {
-                bool allHaveValue = _selectedGames.All(g => HasValue(g));
-                string checkmark = allHaveValue ? "✓ " : "";
-                return $"{checkmark}{_value}";
+                int haveCount = _selectedGames.Count(g => HasValue(g));
+                int totalCount = _selectedGames.Length;
+                bool allHaveValue = haveCount == totalCount;
+                bool noneHaveValue = haveCount == 0;
+                
+                // Apply selection indicator based on config
+                if (totalCount > 1 && _selectionIndicator == "count")
+                {
+                    // Count format: "Label (X of Y)"
+                    return $"{_value} ({haveCount} of {totalCount})";
+                }
+                else
+                {
+                    // Symbol format (default): ✓ (all) / ◐ (some) / blank (none)
+                    string indicator = "";
+                    if (allHaveValue)
+                        indicator = "✓ ";
+                    else if (!noneHaveValue && totalCount > 1)
+                        indicator = "◐ ";
+                    
+                    return $"{indicator}{_value}";
+                }
             }
         }
 
@@ -1598,6 +1940,11 @@ namespace QuickFieldToggle
         {
             var gamesToProcess = selectedGames ?? _selectedGames;
             if (gamesToProcess == null || gamesToProcess.Length == 0) return;
+
+            // Check for confirmation
+            string actionDesc = $"modify '{_fieldName}'";
+            if (!ConfirmationHelper.ShouldProceed(gamesToProcess.Length, _requireConfirmation, actionDesc))
+                return;
 
             bool allHaveValue = gamesToProcess.All(g => HasValue(g));
 
@@ -1749,14 +2096,220 @@ namespace QuickFieldToggle
         {
             if (item.Mode?.ToLower() == "multivalue")
             {
-                return new MultiValueMenuItem(item, _selectedGames, inheritedIcon);
+                return new MultiValueMenuItem(item, _selectedGames, inheritedIcon, _groupConfig);
             }
-            return new ToggleMenuItem(item, _selectedGames, inheritedIcon);
+            return new ToggleMenuItem(item, _selectedGames, inheritedIcon, _groupConfig);
         }
 
         public void OnSelect(params IGame[] selectedGames)
         {
             // Groups don't do anything when clicked
+        }
+    }
+
+    /// <summary>
+    /// Special menu item that clears ALL custom fields from selected games
+    /// </summary>
+    public class ClearAllFieldsMenuItem : IGameMenuItem
+    {
+        private readonly IGame[] _selectedGames;
+        private readonly string _label;
+        private readonly string _icon;
+
+        public ClearAllFieldsMenuItem(IGame[] selectedGames, string label, string icon = "default")
+        {
+            _selectedGames = selectedGames;
+            _label = label;
+            _icon = icon;
+        }
+
+        public string Caption => _label;
+
+        public Image Icon => IconHelper.GetIcon(_icon);
+
+        public bool Enabled => true;
+
+        public IEnumerable<IGameMenuItem> Children => null;
+
+        public void OnSelect(params IGame[] selectedGames)
+        {
+            var gamesToProcess = selectedGames ?? _selectedGames;
+            if (gamesToProcess == null || gamesToProcess.Length == 0) return;
+
+            // This action ALWAYS requires confirmation
+            string actionDesc = "clear ALL custom fields";
+            if (!ConfirmationHelper.ShouldProceed(gamesToProcess.Length, true, actionDesc))
+                return;
+
+            int totalFieldsCleared = 0;
+            foreach (var game in gamesToProcess)
+            {
+                var customFields = game.GetAllCustomFields()?.ToList();
+                if (customFields != null)
+                {
+                    foreach (var field in customFields)
+                    {
+                        game.TryRemoveCustomField(field);
+                        totalFieldsCleared++;
+                    }
+                }
+            }
+
+            PluginHelper.DataManager.Save(false);
+
+            System.Windows.Forms.MessageBox.Show(
+                $"Cleared {totalFieldsCleared} custom fields from {gamesToProcess.Length} game(s).",
+                "Clear All Fields Complete",
+                System.Windows.Forms.MessageBoxButtons.OK,
+                System.Windows.Forms.MessageBoxIcon.Information);
+        }
+    }
+
+    /// <summary>
+    /// Menu item that shows a submenu of all custom fields on selected games,
+    /// allowing selective clearing of individual fields
+    /// </summary>
+    public class SelectiveClearMenuItem : IGameMenuItem
+    {
+        private readonly IGame[] _selectedGames;
+        private readonly string _label;
+        private readonly string _icon;
+
+        public SelectiveClearMenuItem(IGame[] selectedGames, string label, string icon = "default")
+        {
+            _selectedGames = selectedGames;
+            _label = label;
+            _icon = icon;
+        }
+
+        public string Caption => _label;
+
+        public Image Icon => IconHelper.GetIcon(_icon);
+
+        public bool Enabled => true;
+
+        public IEnumerable<IGameMenuItem> Children
+        {
+            get
+            {
+                // Collect all unique field names across selected games, with counts
+                var fieldCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                
+                foreach (var game in _selectedGames)
+                {
+                    var customFields = game.GetAllCustomFields();
+                    if (customFields != null)
+                    {
+                        foreach (var field in customFields)
+                        {
+                            if (!string.IsNullOrEmpty(field.Name))
+                            {
+                                if (fieldCounts.ContainsKey(field.Name))
+                                    fieldCounts[field.Name]++;
+                                else
+                                    fieldCounts[field.Name] = 1;
+                            }
+                        }
+                    }
+                }
+
+                // Sort alphabetically and create menu items
+                return fieldCounts
+                    .OrderBy(kv => kv.Key)
+                    .Select(kv => new SelectiveClearFieldMenuItem(
+                        kv.Key, 
+                        kv.Value, 
+                        _selectedGames.Length, 
+                        _selectedGames));
+            }
+        }
+
+        public void OnSelect(params IGame[] selectedGames)
+        {
+            // Parent doesn't do anything - children handle selection
+        }
+    }
+
+    /// <summary>
+    /// A single field item within the selective clear submenu
+    /// </summary>
+    public class SelectiveClearFieldMenuItem : IGameMenuItem
+    {
+        private readonly string _fieldName;
+        private readonly int _countWithField;
+        private readonly int _totalSelected;
+        private readonly IGame[] _selectedGames;
+
+        public SelectiveClearFieldMenuItem(string fieldName, int countWithField, int totalSelected, IGame[] selectedGames)
+        {
+            _fieldName = fieldName;
+            _countWithField = countWithField;
+            _totalSelected = totalSelected;
+            _selectedGames = selectedGames;
+        }
+
+        public string Caption
+        {
+            get
+            {
+                var config = PluginConfiguration.Instance;
+                bool allHaveField = _countWithField == _totalSelected;
+                bool noneHaveField = _countWithField == 0;
+                
+                // Use selectiveClearIndicator if set, otherwise fall back to root selectionIndicator
+                string indicatorMode = config.SelectiveClearIndicator ?? config.SelectionIndicator;
+                
+                // Apply selection indicator based on config
+                if (_totalSelected > 1 && indicatorMode == "count")
+                {
+                    // Count format: "FieldName (X of Y)"
+                    return $"{_fieldName} ({_countWithField} of {_totalSelected})";
+                }
+                else
+                {
+                    // Symbol format (default): ✓ (all) / ◐ (some) / blank (none)
+                    string indicator = "";
+                    if (allHaveField)
+                        indicator = "✓ ";
+                    else if (!noneHaveField && _totalSelected > 1)
+                        indicator = "◐ ";
+                    
+                    return $"{indicator}{_fieldName}";
+                }
+            }
+        }
+
+        public Image Icon => null;
+
+        public bool Enabled => true;
+
+        public IEnumerable<IGameMenuItem> Children => null;
+
+        public void OnSelect(params IGame[] selectedGames)
+        {
+            var gamesToProcess = selectedGames ?? _selectedGames;
+            if (gamesToProcess == null || gamesToProcess.Length == 0) return;
+
+            // Check for confirmation using standard bulk threshold
+            string actionDesc = $"clear '{_fieldName}'";
+            if (!ConfirmationHelper.ShouldProceed(gamesToProcess.Length, false, actionDesc))
+                return;
+
+            int clearedCount = 0;
+            foreach (var game in gamesToProcess)
+            {
+                var customFields = game.GetAllCustomFields();
+                var fieldToRemove = customFields?.FirstOrDefault(cf => 
+                    cf.Name.Equals(_fieldName, StringComparison.OrdinalIgnoreCase));
+                
+                if (fieldToRemove != null)
+                {
+                    game.TryRemoveCustomField(fieldToRemove);
+                    clearedCount++;
+                }
+            }
+
+            PluginHelper.DataManager.Save(false);
         }
     }
 
@@ -1797,6 +2350,18 @@ namespace QuickFieldToggle
                         menuItems.Add(new ToggleMenuItem(item, selectedGames));
                     }
                 }
+            }
+
+            // Add "Selectively Clear Fields" menu item if enabled
+            if (config.InjectSelectiveClear)
+            {
+                menuItems.Add(new SelectiveClearMenuItem(selectedGames, config.SelectiveClearLabel, config.SelectiveClearIcon));
+            }
+
+            // Add "Clear All Custom Fields" menu item if enabled (last, as it's most destructive)
+            if (config.InjectClearAllFields)
+            {
+                menuItems.Add(new ClearAllFieldsMenuItem(selectedGames, config.ClearAllFieldsLabel, config.ClearAllFieldsIcon));
             }
 
             return menuItems;
